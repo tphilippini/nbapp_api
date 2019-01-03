@@ -1,0 +1,31 @@
+{
+  "name": "nbapp_api",
+  "version": "0.1.0",
+  "description": "Nba App Backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "script": "babel-node ./src/scripts/main.js",
+    "grabPlayers": "babel-node ./src/scripts/grab_players.js",
+    "start": "nodemon --exec babel-node --use_strict ./src/index.js",
+    "build": "babel ./src --out-dir ./dist",
+    "serve": "node ./dist/index.js"
+  },
+  "author": "tphilippini",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "moment": "^2.23.0",
+    "mongoose": "^5.4.1",
+    "p-iteration": "^1.1.7"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "nodemon": "^1.18.9"
+  }
+}
