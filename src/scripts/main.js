@@ -7,12 +7,12 @@ import MatchSchema from '../schemas/match';
 import MatchStatSchema from '../schemas/match_stat';
 import PlayerSchema from '../schemas/player';
 
-import { findTodayMatches } from './api/nba';
+import { findTodayMatches, checkGameStatus } from './api/nba';
 import { saveMatchesOrUpdate } from '../models/match';
 import matchStatCollector from '../models/match_stat_collector';
 
 
-async function main(connection, dateFormatted, dateFormattedYesterday, date) {
+async function main(connection, dateFormatted) {
   return new Promise(async (resolve, reject) => {
 
     const MatchModel = connection.model('Match', MatchSchema, 'Match');
@@ -28,22 +28,8 @@ async function main(connection, dateFormatted, dateFormattedYesterday, date) {
       log.info('----------------------------------');
       await matchStatCollector(todaysMatches, MatchModel, MatchStatModel, PlayerModel);
       log.success('Match record save/update complete...');
-      log.info('----------------------------------');
-
-    //   const { notStarted, active, over, overRecent } = await checkGameStatus(todaysMatches);
-    //   console.log(notStarted.length, active.length, over.length, overRecent.length);
-
-    //   const gameThreadsToCreate = await findGameThreads(overRecent, matchRepository, date);
-    //   if (gameThreadsToCreate.length > 0) {
-    //     await saveGameThreads(gameThreadsToCreate, matchRepository, threadRepository)
-    //     console.log('game thread save/update complete');
-    //   }
     }
-    // await findPostGameThreads(matchRepository, postGameThreadRepository);
-    // //STREAMABLES
-    // const streamables = await findStreamablePosts(date, r);
-    // const formattedStreamables = await formatStreamablePosts(streamables);
-    // await saveAndUpdateStreamables(formattedStreamables, streamableRepository, matchRepository);
+ 
     resolve();
   })
 }
@@ -51,7 +37,8 @@ async function main(connection, dateFormatted, dateFormattedYesterday, date) {
 const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
 
 mongoose.connect(DATABASE_URL,
-  { useNewUrlParser: true,
+  { 
+    useNewUrlParser: true,
     useCreateIndex: true 
   }, 
   function (error, connection) {
@@ -63,10 +50,7 @@ mongoose.connect(DATABASE_URL,
     log.title('Main');
     // grab todays games and continue to update
     const todayDate = moment().subtract(1, 'd').format('YYYYMMDD');
-    const yesterdayDate = moment().subtract(2, 'd').format('YYYYMMDD');
-    const date = moment().startOf('day').subtract(1, 'd');
-
-    main(connection, todayDate, yesterdayDate, date).then(() => {
+    main(connection, todayDate).then(() => {
       log.info('----------------------------------');
       log.info('Closed database connection');
       connection.close();

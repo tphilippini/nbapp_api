@@ -38,8 +38,8 @@ async function grabPlayerNames(playerModel) {
 
         const playerToSave = await playerModel.findOne({ playerId: player[12] });
         if (playerToSave) {
-          log.info('Player exists, updating the record now...');
           log.info('----------------------------------');
+          log.info('Player exists, updating the record now...');
           playerToSave.name = player[3];
           playerToSave.firstName = player[3].split(' ')[0];
           playerToSave.lastName = player[3].split(' ')[1] ? player[3].split(' ')[1] : '';
@@ -64,8 +64,8 @@ async function grabPlayerNames(playerModel) {
             log.error(error);
           }
         } else {
-          log.info('Player doesnt exist, creating new record now...');
           log.info('----------------------------------');
+          log.info('Player doesnt exist, creating new record now...');
           const newPlayer = {
             name: player[3],
             firstName: player[3].split(' ')[0],

@@ -11,8 +11,8 @@ async function matchStatCollector(games, matchModel, matchStatModel, playerModel
 
         // if match exists and has started and is not over
         if (existingMatch && existingMatch.statusNum === 2) {
-          log.info('Match exists, game is live, updating the record now...');
           log.info('----------------------------------');
+          log.info('Match exists, game is live, updating the record now...');
           
           let result = await axios.get(
             `https://nlnbamdnyc-a.akamaihd.net/fs/nba/feeds_s2012/stats/2018/boxscore/${
@@ -55,6 +55,7 @@ async function matchStatCollector(games, matchModel, matchStatModel, playerModel
         log.error(error);
       }
     });
+    log.info('----------------------------------');
     resolve();
   });
 }
@@ -71,8 +72,8 @@ async function saveStats(match, stats, playerModel, matchStatModel) {
         let existingMatchStat = await matchStatModel.findOne({ playerIdFull: stat.id, matchIdFull: match.matchId });
 
         if (existingMatchStat) {
-          log.info('MatchStat exists, updating the record now...');
           log.info('----------------------------------');
+          log.info('MatchStat exists, updating the record now...');
           existingMatchStat.statsJSON = stat;
           try {
             let existingMatchStatPlayer = new matchStatModel(existingMatchStat);
@@ -84,8 +85,8 @@ async function saveStats(match, stats, playerModel, matchStatModel) {
             log.error(error);
           }
         } else {
-          log.info('MatchStat doesnt exist, creating new record now...');
           log.info('----------------------------------');
+          log.info('MatchStat doesnt exist, creating new record now...');
           const matchStat = {
             matchIdFull: match.matchId,
             playerIdFull: stat.id,

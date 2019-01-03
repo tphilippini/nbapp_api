@@ -7,8 +7,8 @@ async function saveMatchesOrUpdate(games, matchModel) {
 
     // if match exists and it's not over, update it
     if (existingMatch && existingMatch.statusNum !== 3) {
-      log.info('Match exists, game is live, updating the record now...');
       log.info('----------------------------------');
+      log.info('Match exists, game is live, updating the record now...');
       existingMatch.isGameActivated = game.isGameActivated;
       existingMatch.hTeamScore = game.hTeam.score;
       existingMatch.vTeamScore = game.vTeam.score;
@@ -33,8 +33,8 @@ async function saveMatchesOrUpdate(games, matchModel) {
         log.error(error);
       }
     } else if (existingMatch && existingMatch.statusNum === 3) {
-      log.info('Match exists, game is over, updating the record now...');
       log.info('----------------------------------');
+      log.info('Match exists, game is over, updating the record now...');
       existingMatch.endTimeUTC = game.endTimeUTC;
       existingMatch.isGameActivated = game.isGameActivated;
       existingMatch.currentPeriod = game.period.current;
@@ -52,8 +52,8 @@ async function saveMatchesOrUpdate(games, matchModel) {
         log.error(error);
       }
     } else {
-      log.info('Match doesnt exist, creating new record now...');
       log.info('----------------------------------');
+      log.info('Match doesnt exist, creating new record now...');
       const match = {
         matchId: game.gameId,
         startDateEastern: game.startDateEastern,
