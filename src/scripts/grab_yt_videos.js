@@ -4,32 +4,23 @@ import mongoose from 'mongoose';
 import log from '../helpers/log';
 import { db } from '../config/config';
 import MatchSchema from '../schemas/match';
-import MatchStatSchema from '../schemas/match_stat';
+import YoutubeVideoSchema from '../schemas/youtube_video';
 import PlayerSchema from '../schemas/player';
 
-import { findTodayMatches } from './api/nba';
-import { saveMatchesOrUpdate } from '../models/match';
-import matchStatCollector from '../models/match_stat_collector';
+import { findAndSaveYoutubeVideos } from '../models/video';
 
 
 async function main(connection, dateFormatted) {
   return new Promise(async (resolve, reject) => {
 
     const MatchModel = connection.model('Match', MatchSchema, 'Match');
-    const MatchStatModel = mongoose.model('MatchStat', MatchStatSchema, 'MatchStat');
+    const YoutubeVideoModel = mongoose.model('YoutubeVideo', YoutubeVideoSchema, 'YoutubeVideo');
     const PlayerModel = connection.model('Player', PlayerSchema, 'Player');
 
-    // MATCHES
-    log.info('Finding today matches...');
-    const todaysMatches = await findTodayMatches(dateFormatted);
-    console.log('Todays matches found :', todaysMatches.length);
-    if (todaysMatches.length > 0) {
-      await saveMatchesOrUpdate(todaysMatches, MatchModel);
-      log.info('----------------------------------');
-      await matchStatCollector(todaysMatches, MatchModel, MatchStatModel, PlayerModel);
-      log.success('Match record save/update complete...');
-    }
- 
+    // YOUTUBE VIDEOS UPDATE
+    // MLG Highlights
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCoh_z6QB0AGB1oxWufvbDUg');
+
     resolve();
   })
 }
@@ -37,10 +28,10 @@ async function main(connection, dateFormatted) {
 const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
 
 mongoose.connect(DATABASE_URL,
-  { 
+  {
     useNewUrlParser: true,
-    useCreateIndex: true 
-  }, 
+    useCreateIndex: true
+  },
   function (error, connection) {
     if (error) return funcCallback(error);
 

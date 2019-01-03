@@ -1,8 +1,7 @@
 # NBA APP BACKEND API
 
 ## TODO:
-1. Join Player table to matchStat table (join on playerId ?)
-2. Related player table and matchStat
+1. Update grab yt channel with forEach config channels list
 
 ## Authors
 * **tphilippini**
