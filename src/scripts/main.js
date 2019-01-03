@@ -1,7 +1,8 @@
 import moment from 'moment';
+import mongoose from 'mongoose';
+
 import log from '../helpers/log';
 import { db } from '../config/config';
-
 import MatchSchema from '../schemas/match';
 import MatchStatSchema from '../schemas/match_stat';
 import PlayerSchema from '../schemas/player';
@@ -9,14 +10,13 @@ import PlayerSchema from '../schemas/player';
 import { findTodayMatches } from './api/nba';
 import { saveMatchesOrUpdate } from '../models/match';
 import matchStatCollector from '../models/match_stat_collector';
-import mongoose from 'mongoose';
 
 
 async function main(connection, dateFormatted, dateFormattedYesterday, date) {
   return new Promise(async (resolve, reject) => {
 
     const MatchModel = connection.model('Match', MatchSchema, 'Match');
-    // const MatchStatModel = mongoose.model('MatchStat', MatchStatSchema, 'MatchStat');
+    const MatchStatModel = mongoose.model('MatchStat', MatchStatSchema, 'MatchStat');
     const PlayerModel = connection.model('Player', PlayerSchema, 'Player');
 
     // MATCHES
@@ -25,8 +25,10 @@ async function main(connection, dateFormatted, dateFormattedYesterday, date) {
     console.log('Todays matches found :', todaysMatches.length);
     if (todaysMatches.length > 0) {
       await saveMatchesOrUpdate(todaysMatches, MatchModel);
-      // await matchStatCollector(todaysMatches, MatchModel, MatchStatModel, PlayerModel);
-    //   console.log('match record save/update complete');
+      log.info('----------------------------------');
+      await matchStatCollector(todaysMatches, MatchModel, MatchStatModel, PlayerModel);
+      log.success('Match record save/update complete...');
+      log.info('----------------------------------');
 
     //   const { notStarted, active, over, overRecent } = await checkGameStatus(todaysMatches);
     //   console.log(notStarted.length, active.length, over.length, overRecent.length);
@@ -65,6 +67,7 @@ mongoose.connect(DATABASE_URL,
     const date = moment().startOf('day').subtract(1, 'd');
 
     main(connection, todayDate, yesterdayDate, date).then(() => {
+      log.info('----------------------------------');
       log.info('Closed database connection');
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);

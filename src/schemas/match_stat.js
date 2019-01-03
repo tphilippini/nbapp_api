@@ -9,7 +9,17 @@ const MatchStatSchema = new Schema({
 
   playerIdFull: String,
 
-  statsJSON: Object
+  statsJSON: Object,
+
+  player: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Player'
+  },
+
+  match: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Match'
+  }
 });
 
 module.exports = MatchStatSchema;
