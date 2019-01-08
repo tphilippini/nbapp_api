@@ -48,7 +48,7 @@ function matchNotFresh(endTimeUTC) {
   let duration = moment.duration(now.diff(end));
   let hours = duration.asHours();
   // console.log(`Time since match ended: ${hours}`);
-  return hours > 20;
+  return hours > 13;
 }
 
 async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerModel, dateFormatted, channelId) {
@@ -61,10 +61,10 @@ async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerMod
 
       await forEachSeries(todaysMatches, async (match) => {
         if (match.statusNum === 3 && matchNotFresh(match.endTimeUTC)) {
-          console.log('Match is finished and 20+ hours since ended, dont search for videos');
+          console.log('Match is finished and 13+ hours since ended, dont search for videos');
         } else if (match.statusNum === 3 && !matchNotFresh(match.endTimeUTC)) {
           console.log(TRI_CODE_TO_TEAM_NAME[match.hTeamTriCode], TRI_CODE_TO_TEAM_NAME[match.vTeamTriCode]);
-          console.log('Ready to look for videos, match is over but < 20 hours since it ended');
+          console.log('Ready to look for videos, match is over but < 13 hours since it ended');
 
           const videos = await videoFromChannel(channelId, `${TRI_CODE_TO_TEAM_NAME[match.hTeamTriCode]} | ${TRI_CODE_TO_TEAM_NAME[match.vTeamTriCode]}`, moment(match.startTimeUTCString).toISOString());
           log.success(`Found ${videos.items.length} videos.`);

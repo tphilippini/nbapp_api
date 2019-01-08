@@ -4,11 +4,10 @@ import path from 'path';
 import { google } from 'googleapis';
 var OAuth2 = google.auth.OAuth2;
 
+import { youtube } from '../../config/config';
 import log from '../../helpers/log';
 
 
-// If modifying these scopes, delete your previously saved credentials
-// at ~/.credentials/youtube-nodejs-quickstart.json
 const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 const TOKEN_DIR = path.join(__dirname);
 const TOKEN_PATH = TOKEN_DIR + '/token.json';
@@ -29,9 +28,9 @@ async function videoFromChannel(channelId, query, gameStartTime) {
 
 function authorize() {
   return new Promise((resolve, reject) => {
-    const clientSecret = '8t2LokC2M7D0RyEl7jsKLRaT';
-    const clientId = '1058713592928-cmkvemtn2lk8jv183eodkoo2qjtmgvni.apps.googleusercontent.com';
-    const redirectUrl = 'urn:ietf:wg:oauth:2.0:oob';
+    const clientSecret = youtube().client_secret;
+    const clientId = youtube().client_id;
+    const redirectUrl = youtube().redirect_uri;
     const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
 
     // Check if we have previously stored a token.

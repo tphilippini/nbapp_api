@@ -19,7 +19,25 @@ async function main(connection, dateFormatted) {
 
     // YOUTUBE VIDEOS UPDATE
     // MLG Highlights
+    log.title(`MLG Highlights`);
     await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCoh_z6QB0AGB1oxWufvbDUg');
+
+    // NBA
+    // await findAndSaveYoutubeVideos(matchRepository, youtubeVideoRepository, playerRepository, dateFormatted, 'UCWJ2lWNubArHWmf3FIHbfcQ');
+    // GD's Lastest Highlights - moved
+    // await findAndSaveYoutubeVideos(matchRepository, youtubeVideoRepository, playerRepository, dateFormatted, 'UCd_EkHbEutirFl_XSrg95kA');
+    
+    // House of highlights
+    log.title(`House of highlights`);
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCqQo7ewe87aYAe7ub5UqXMw');
+    log.title(`Ximo Pierto`);
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCCxupwq_A5lj-QsNHrUvWhg');
+    // Free dawkins
+    log.title(`Free dawkins`);
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCEjOSbbaOfgnfRODEEMYlCw');
+    // Rapid Highlights
+    log.title(`Rapid Highlights`);
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCdxB6UoY7VggXoaOSvEhSjg');
 
     resolve();
   })

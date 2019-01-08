@@ -103,6 +103,28 @@ const db = () => {
   return conf[process.env.NODE_ENV];
 };
 
+const youtube = () => {
+  const conf = {
+    test: {
+      client_id: "1058713592928-cmkvemtn2lk8jv183eodkoo2qjtmgvni.apps.googleusercontent.com",
+      client_secret: "8t2LokC2M7D0RyEl7jsKLRaT",
+      redirect_uri: "urn:ietf:wg:oauth:2.0:oob"
+    },
+    dev: {
+      client_id: "1058713592928-cmkvemtn2lk8jv183eodkoo2qjtmgvni.apps.googleusercontent.com",
+      client_secret: "8t2LokC2M7D0RyEl7jsKLRaT",
+      redirect_uri: "urn:ietf:wg:oauth:2.0:oob"
+    },
+    prod: {
+      client_id: "1058713592928-cmkvemtn2lk8jv183eodkoo2qjtmgvni.apps.googleusercontent.com",
+      client_secret: "8t2LokC2M7D0RyEl7jsKLRaT",
+      redirect_uri: "urn:ietf:wg:oauth:2.0:oob"
+    }
+  };
+
+  return conf[process.env.NODE_ENV];
+};
+
 // const mail = () => {
 //   const conf = {
 //     test: {
@@ -137,5 +159,6 @@ const db = () => {
 export {
   app,
   api,
-  db
+  db,
+  youtube
 };
