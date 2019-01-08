@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "updateDailyMatches": "babel-node ./src/scripts/update_matches.js",
     "updatePlayers": "babel-node ./src/scripts/update_players.js",
+    "updateTeams": "babel-node ./src/scripts/update_teams.js",
     "updateYoutubeVideos": "babel-node ./src/scripts/update_yt_videos.js",
     "start": "nodemon --exec babel-node --use_strict ./src/index.js",
     "build": "babel ./src --out-dir ./dist",

@@ -6,6 +6,7 @@ import { db } from '../config/config';
 import MatchSchema from '../schemas/match';
 import YoutubeVideoSchema from '../schemas/youtube_video';
 import PlayerSchema from '../schemas/player';
+import TeamSchema from '../schemas/team';
 
 import { findAndSaveYoutubeVideos } from '../models/video';
 
@@ -16,28 +17,23 @@ async function main(connection, dateFormatted) {
     const MatchModel = connection.model('Match', MatchSchema, 'Match');
     const YoutubeVideoModel = mongoose.model('YoutubeVideo', YoutubeVideoSchema, 'YoutubeVideo');
     const PlayerModel = connection.model('Player', PlayerSchema, 'Player');
+    const TeamModel = connection.model('Team', TeamSchema, 'Team');
 
     // YOUTUBE VIDEOS UPDATE
     // MLG Highlights
     log.title(`MLG Highlights`);
-    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCoh_z6QB0AGB1oxWufvbDUg');
-
-    // NBA
-    // await findAndSaveYoutubeVideos(matchRepository, youtubeVideoRepository, playerRepository, dateFormatted, 'UCWJ2lWNubArHWmf3FIHbfcQ');
-    // GD's Lastest Highlights - moved
-    // await findAndSaveYoutubeVideos(matchRepository, youtubeVideoRepository, playerRepository, dateFormatted, 'UCd_EkHbEutirFl_XSrg95kA');
-    
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, TeamModel, dateFormatted, 'UCoh_z6QB0AGB1oxWufvbDUg');    
     // House of highlights
     log.title(`House of highlights`);
-    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCqQo7ewe87aYAe7ub5UqXMw');
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, TeamModel, dateFormatted, 'UCqQo7ewe87aYAe7ub5UqXMw');
     log.title(`Ximo Pierto`);
-    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCCxupwq_A5lj-QsNHrUvWhg');
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, TeamModel, dateFormatted, 'UCCxupwq_A5lj-QsNHrUvWhg');
     // Free dawkins
     log.title(`Free dawkins`);
-    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCEjOSbbaOfgnfRODEEMYlCw');
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, TeamModel, dateFormatted, 'UCEjOSbbaOfgnfRODEEMYlCw');
     // Rapid Highlights
     log.title(`Rapid Highlights`);
-    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, dateFormatted, 'UCdxB6UoY7VggXoaOSvEhSjg');
+    await findAndSaveYoutubeVideos(MatchModel, YoutubeVideoModel, PlayerModel, TeamModel, dateFormatted, 'UCdxB6UoY7VggXoaOSvEhSjg');
 
     resolve();
   })

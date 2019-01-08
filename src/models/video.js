@@ -5,40 +5,6 @@ import { videoFromChannel } from '../scripts/api/youtube';
 import log from '../helpers/log';
 
 
-const TRI_CODE_TO_TEAM_NAME = {
-  'ATL': 'Atlanta Hawks',
-  'BOS': 'Boston Celtics',
-  'BKN': 'Brooklyn Nets',
-  'CHA': 'Charlotte Hornets',
-  'CHI': 'Chicago Bulls',
-  'CLE': 'Cleveland Cavaliers',
-  'DAL': 'Dallas Mavericks',
-  'DEN': 'Denver Nuggets',
-  'DET': 'Detroit Pistons',
-  'GSW': 'Golden State',
-  'HOU': 'Houston Rockets',
-  'IND': 'Indiana Pacers',
-  'LAC': 'Los Angeles Clippers',
-  'LAL': 'Los Angeles Lakers',
-  'MEM': 'Memphis Grizzlies',
-  'MIA': 'Miami Heat',
-  'MIL': 'Milwaukee Bucks',
-  'MIN': 'Minnesota Timberwolves',
-  'NOP': 'New Orleans Pelicans',
-  'NYK': 'New York Knicks',
-  'OKC': 'Oklahoma City Thunder',
-  'ORL': 'Orlando Magic',
-  'PHI': 'Philadelphia 76ers',
-  'PHX': 'Phoenix Suns',
-  'POR': 'Portland Trail Blazers',
-  'SAC': 'Sacramento Kings',
-  'SAS': 'San Antonio Spurs',
-  'TOR': 'Toronto Raptors',
-  'UTA': 'Utah Jazz',
-  'WAS': 'Washington Wizards'
-}
-
-
 function matchNotFresh(endTimeUTC) {
   // Average UTC time in US
   let now = moment().subtract('hours');
@@ -51,22 +17,26 @@ function matchNotFresh(endTimeUTC) {
   return hours > 13;
 }
 
-async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerModel, dateFormatted, channelId) {
+async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerModel, teamModel, dateFormatted, channelId) {
   return new Promise(async (resolve, reject) => {
     try {
       
       log.info('----------------------------------');
       const todaysMatches = await matchModel.find({ startDateEastern: dateFormatted });
       console.log(`Found ${todaysMatches.length} matches.`);
+      const teams = await teamModel.find();
 
       await forEachSeries(todaysMatches, async (match) => {
+        let hTeam = teams.find(t => t.teamTriCode === match.hTeamTriCode);
+        let vTeam = teams.find(t => t.teamTriCode === match.vTeamTriCode);
+
         if (match.statusNum === 3 && matchNotFresh(match.endTimeUTC)) {
           console.log('Match is finished and 13+ hours since ended, dont search for videos');
         } else if (match.statusNum === 3 && !matchNotFresh(match.endTimeUTC)) {
-          console.log(TRI_CODE_TO_TEAM_NAME[match.hTeamTriCode], TRI_CODE_TO_TEAM_NAME[match.vTeamTriCode]);
+          console.log(hTeam.teamName, vTeam.teamName);
           console.log('Ready to look for videos, match is over but < 13 hours since it ended');
 
-          const videos = await videoFromChannel(channelId, `${TRI_CODE_TO_TEAM_NAME[match.hTeamTriCode]} | ${TRI_CODE_TO_TEAM_NAME[match.vTeamTriCode]}`, moment(match.startTimeUTCString).toISOString());
+          const videos = await videoFromChannel(channelId, `${hTeam.teamName} | ${vTeam.teamName}`, moment(match.startTimeUTCString).toISOString());
           log.success(`Found ${videos.items.length} videos.`);
           
           if (videos.items.length > 0) {
@@ -75,10 +45,10 @@ async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerMod
             log.info('----------------------------------');
           }
         } else if (match.statusNum === 2) {
-          console.log(TRI_CODE_TO_TEAM_NAME[match.hTeamTriCode], TRI_CODE_TO_TEAM_NAME[match.vTeamTriCode]);
+          console.log(hTeam.teamName, vTeam.teamName);
           console.log('Ready to look for videos, match is active');
 
-          const videos = await videoFromChannel(channelId, `${TRI_CODE_TO_TEAM_NAME[match.hTeamTriCode]} | ${TRI_CODE_TO_TEAM_NAME[match.vTeamTriCode]}`, moment(match.startTimeUTCString).toISOString());
+          const videos = await videoFromChannel(channelId, `${hTeam.teamName} | ${vTeam.teamName}`, moment(match.startTimeUTCString).toISOString());
           log.success(`Found ${videos.items.length} videos.`);
           
           if (videos.items.length > 0) {
