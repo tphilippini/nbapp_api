@@ -52,6 +52,8 @@ class Server {
     // Middleware to handle error from authentication
     // app.use(authErrorMidd);
 
+    log.default('Coucou');
+
     log.title('Initialization');
     log.success(`Hi! The current env is ${process.env.NODE_ENV}`);
 

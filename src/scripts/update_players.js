@@ -26,7 +26,7 @@ async function grabPlayerNames(playerModel, teamModel) {
   // TEAMS
   log.info('Finding teams...');
   const teams = await teamModel.find({ isNBAFranchise: true });
-  console.log('Teams found :', teams.length);
+  log.default('Teams found :', teams.length);
 
   await forEachSeries(teams, async (team, i) => {
     await sleep(1000);

@@ -22,7 +22,7 @@ async function main(connection, dateFormatted) {
     // MATCHES
     log.info('Finding today matches...');
     const todaysMatches = await findTodayMatches(dateFormatted);
-    console.log('Todays matches found :', todaysMatches.length);
+    log.default('Todays matches found :', todaysMatches.length);
     if (todaysMatches.length > 0) {
       await saveMatchesOrUpdate(todaysMatches, MatchModel);
       log.info('----------------------------------');

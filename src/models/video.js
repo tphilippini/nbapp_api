@@ -13,7 +13,7 @@ function matchNotFresh(endTimeUTC) {
   // Time since game end
   let duration = moment.duration(now.diff(end));
   let hours = duration.asHours();
-  // console.log(`Time since match ended: ${hours}`);
+  // log.default(`Time since match ended: ${hours}`);
   return hours > 13;
 }
 
@@ -23,7 +23,7 @@ async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerMod
       
       log.info('----------------------------------');
       const todaysMatches = await matchModel.find({ startDateEastern: dateFormatted });
-      console.log(`Found ${todaysMatches.length} matches.`);
+      log.default(`Found ${todaysMatches.length} matches.`);
       const teams = await teamModel.find();
 
       await forEachSeries(todaysMatches, async (match) => {
@@ -31,10 +31,10 @@ async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerMod
         let vTeam = teams.find(t => t.teamTriCode === match.vTeamTriCode);
 
         if (match.statusNum === 3 && matchNotFresh(match.endTimeUTC)) {
-          console.log('Match is finished and 13+ hours since ended, dont search for videos');
+          log.default('Match is finished and 13+ hours since ended, dont search for videos');
         } else if (match.statusNum === 3 && !matchNotFresh(match.endTimeUTC)) {
-          console.log(hTeam.teamName, vTeam.teamName);
-          console.log('Ready to look for videos, match is over but < 13 hours since it ended');
+          log.default(hTeam.teamName, vTeam.teamName);
+          log.default('Ready to look for videos, match is over but < 13 hours since it ended');
 
           const videos = await videoFromChannel(channelId, `${hTeam.teamName} | ${vTeam.teamName}`, moment(match.startTimeUTCString).toISOString());
           log.success(`Found ${videos.items.length} videos.`);
@@ -45,8 +45,8 @@ async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerMod
             log.info('----------------------------------');
           }
         } else if (match.statusNum === 2) {
-          console.log(hTeam.teamName, vTeam.teamName);
-          console.log('Ready to look for videos, match is active');
+          log.default(hTeam.teamName, vTeam.teamName);
+          log.default('Ready to look for videos, match is active');
 
           const videos = await videoFromChannel(channelId, `${hTeam.teamName} | ${vTeam.teamName}`, moment(match.startTimeUTCString).toISOString());
           log.success(`Found ${videos.items.length} videos.`);
@@ -57,7 +57,7 @@ async function findAndSaveYoutubeVideos(matchModel, youtubeVideoModel, playerMod
             log.info('----------------------------------');
           }
         } else {
-          console.log('Match is not yet active, dont look for youtube videos');
+          log.default('Match is not yet active, dont look for youtube videos');
         }
       });
 
@@ -123,7 +123,7 @@ async function determineVideoTypeFromTitle(title, playerRepository) {
   let playerId = undefined;
   let duelIds = undefined;
   let name = title.split(' ')[0] + ' ' + title.split(' ')[1];
-  console.log(`Determine video type for ${name}`);
+  log.default(`Determine video type for ${name}`);
   
   let titleLowerCase = title.toLowerCase();
   if (titleLowerCase.includes('interview')) {

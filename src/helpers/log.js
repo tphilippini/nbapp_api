@@ -10,6 +10,6 @@ log.error = value => console.error('\x1b[31m%s\x1b[0m', value);
 
 log.title = value => console.log('\n---\n\n\x1b[7m.: %s :.\x1b[0m\n', value.toUpperCase());
 
-log.default = value => console.log('%s', value);
+log.default = value => console.log('\x1b[2m%s\x1b[0m', value);
 
 export default log;
