@@ -8,8 +8,8 @@ import MatchStatSchema from '../schemas/match_stat';
 import PlayerSchema from '../schemas/player';
 
 import { findTodayMatches } from './api/nba';
-import { saveMatchesOrUpdate } from '../models/match';
-import matchStatCollector from '../models/match_stat_collector';
+import { saveMatchesOrUpdate } from './models/match';
+import matchStatCollector from './models/match_stat_collector';
 
 
 async function main(connection, dateFormatted) {

@@ -8,7 +8,7 @@ import YoutubeVideoSchema from '../schemas/youtube_video';
 import PlayerSchema from '../schemas/player';
 import TeamSchema from '../schemas/team';
 
-import { findAndSaveYoutubeVideos } from '../models/video';
+import { findAndSaveYoutubeVideos } from './models/video';
 
 
 async function main(connection, dateFormatted) {

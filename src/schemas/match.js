@@ -1,7 +1,6 @@
-import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose'
 
-const MatchSchema = new Schema({
+const MatchSchema = new mongoose.Schema({
   
   id: Number,
   

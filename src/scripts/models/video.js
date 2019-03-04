@@ -165,11 +165,14 @@ async function determineVideoTypeFromTitle(title, playerRepository) {
 
       // determine id of both players in the duel
       // CARE THIS IS VERY SPECIFIC, COULD BREAK EASILY BASED ON YOUTUBE TITLE
-      let player1Name = title.split("vs")[0].slice(0, -1);;
-      let player2Name = title.split("vs")[1].split(" ")[1] + " " + title.split("vs")[1].split(" ")[2];
+      let player1Name = title.split("vs")[0].slice(0, -1);
+      let player2Name = '';
+      if (title.split("vs")[1]) {
+        player2Name = title.split("vs")[1].split(" ")[1] + " " + title.split("vs")[1].split(" ")[2];
+      }
 
-      let player1 = await playerRepository.find({ where: { name: player1Name } });
-      let player2 = await playerRepository.find({ where: { name: player2Name } });
+      let player1 = await playerRepository.find({ name: player1Name });
+      let player2 = await playerRepository.find({ name: player2Name });
 
       // if both players can be identified, send back duelIds for each so they are saved in ManyToMany relationship.
       if (player1.length === 1 && player2.length === 1) {
@@ -185,8 +188,11 @@ async function determineVideoTypeFromTitle(title, playerRepository) {
 
     // determine id of both players in the duel
     // CARE THIS IS VERY SPECIFIC, COULD BREAK EASILY BASED ON YOUTUBE TITLE
-    let player1Name = title.split("vs")[0].slice(0, -1);;
-    let player2Name = title.split("vs")[1].split(" ")[1] + " " + title.split("vs")[1].split(" ")[2];
+    let player1Name = title.split("vs")[0].slice(0, -1);
+    let player2Name = '';
+    if (title.split("vs")[1]) {
+      player2Name = title.split("vs")[1].split(" ")[1] + " " + title.split("vs")[1].split(" ")[2];
+    }
 
     let player1 = await playerRepository.find({ where: { name: player1Name } });
     let player2 = await playerRepository.find({ where: { name: player2Name } });

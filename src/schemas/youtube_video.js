@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
 
-const YoutubeVideoSchema = new Schema({
+const YoutubeVideoSchema = new mongoose.Schema({
 
   id: Number,
 

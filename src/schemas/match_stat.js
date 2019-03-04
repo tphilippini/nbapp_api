@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
-const Schema = mongoose.Schema;
 
-const MatchStatSchema = new Schema({
+const MatchStatSchema = new mongoose.Schema({
   
   id: Number,
 
