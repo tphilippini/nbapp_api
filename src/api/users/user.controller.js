@@ -129,4 +129,21 @@ userController.post = (req, res) => {
   });
 };
 
+userController.getAll = (req, res) => {
+  log.info('Hi! Getting all of the users...');
+  User.getAll((result) => {
+    res.json(result);
+  });
+};
+
+userController.getCurrent = (req, res) => {
+  log.info('Hi! Getting current user...');
+  res.json({
+    user: {
+      email: req.user.email,
+      alias: req.user.alias
+    }
+  });
+};
+
 export default userController;

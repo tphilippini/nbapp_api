@@ -105,8 +105,11 @@ class Server {
       );
 
       const connection = mongoose.connection;
-      connection.on('error', console.error.bind(console, 'Connection error...'));
-      connection.once('open', function () {
+      connection.on('error', () => {
+        log.error(`Connection error to the database ${db().name}`);
+      });
+
+      connection.once('open', () => {
         log.success(`Hi! Connecting to the database ${db().name}`);
       }); 
 

@@ -124,7 +124,7 @@ authController.post = (req, res) => {
     const accessToken = generateAccessToken(
       deviceId,
       result.uuid,
-      result.username,
+      result.alias,
       result.email,
       userType
     );
@@ -160,13 +160,13 @@ authController.post = (req, res) => {
     const deviceId = uuid.v4();
 
     const newAccessToken = generateAccessToken(
-      deviceId, result.user_uuid, result.user_type
+      deviceId, result.userId, result.userType
     );
     const newRefreshToken = generateRefreshToken(deviceId);
 
     Device.updateRefreshToken([
       newRefreshToken,
-      result.refresh_token,
+      result.refreshToken,
       result.uuid
     ], () => {
       response.success(res, 200, 'tokens_updated',

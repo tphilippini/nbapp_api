@@ -40,6 +40,14 @@ class User {
       }
     });
   }
+
+  getAll(cb) {
+    this.model.find({}, (err, result) => {
+      if (err) throw err;
+
+      cb(result);
+    });
+  }
 }
 
 export default new User();
