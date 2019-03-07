@@ -1,7 +1,7 @@
 'use strict';
 
 import uuid from 'uuid';
-import { isEmail } from 'validator';
+import { isEmail, isUUID } from 'validator';
 import bcrypt from 'bcrypt';
 import EventEmitter from 'events';
 import ua from 'useragent';
@@ -125,6 +125,90 @@ userController.post = (req, res) => {
           );
         });
       });
+    });
+  });
+};
+
+userController.patch = (req, res) => {
+  log.info('Hi! Editing an user...');
+
+  const grantType = req.body.grant_type;
+  const userType = req.body.user_type;
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    if (!grantType) {
+      errors.push('missing_params');
+    } else {
+      const allowedUserTypes = ['user'];
+
+      if (grantType === 'update') {
+        log.info('Hi! Updating...');
+
+        const firstName = req.body.firstname;
+        const lastName = req.body.lastname;
+        const alias = req.body.alias;
+        const email = req.body.email;
+        const uuid = req.params.uuid;
+
+        if (!lastName || !firstName || !alias ||
+          !email || !uuid || !userType) {
+          errors.push('missing_params');
+        } else {
+          if (allowedUserTypes.indexOf(userType) === -1) {
+            errors.push('invalid_user_type');
+          }
+          if (!isUUID(uuid)) {
+            errors.push('invalid_client');
+          } 
+          if (!isEmail(email)) {
+            errors.push('invalid_email_address');
+          } 
+          if (alias.length < 4) {
+            errors.push('alias_too_short');
+          }
+
+          if (errors.length === 0) {
+            User.findOneByUUID(uuid, (result) => {
+              if (result && result.uuid == uuid) {
+                result.alias = alias
+                result.email = email
+                result.firstName = firstName
+                result.lastName = lastName
+
+                checkEvent.emit('success_update_grant', result);
+              } else {
+                errors.push('invalid_credentials');
+                checkEvent.emit('error', errors);
+              }              
+            });
+          }
+        }
+      } else {
+        // TODO : Faire grant_type pour la confirmed field et le password update
+
+        errors.push('invalid_grant_type');
+      }
+    }
+
+    if (errors.length > 0) {
+      checkEvent.emit('error', errors);
+    }
+  };
+
+  checkEvent.on('error', (err) => {
+    let status = 400;
+    response.error(res, status, err);
+  });
+
+  checking();
+
+  checkEvent.on('success_update_grant', (result) => {
+    User.update(result, (user) => {
+      response.success(res, 200, 'user_updated');
     });
   });
 };

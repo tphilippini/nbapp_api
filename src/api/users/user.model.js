@@ -29,6 +29,30 @@ class User {
     });
   }
 
+  findOneByUUID(data, cb) {
+    this.model.findOne({ uuid: data }, (err, result) => {
+      if (err) throw err;
+
+      if (result) {
+        cb(result);
+      } else {
+        cb([]);
+      }
+    });
+  }
+
+  update(data, cb) {
+    this.model.updateOne(data, (err, result) => {
+      if (err) throw err;
+
+      if (result) {
+        cb(result);
+      } else {
+        cb([]);
+      }
+    });
+  }
+
   doesThisExist(data, cb) {
     this.model.findOne(data, (err, result) => {
       if (err) throw err;

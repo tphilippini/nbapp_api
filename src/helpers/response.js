@@ -11,6 +11,7 @@ response.success = (res, status, code, ...data) => {
   if (code === 'user_added') message = 'L\'utilisateur a été ajouté avec succès';
   if (code === 'user_authenticated') message = 'L\'utilisateur a été authentifié avec succès';
   if (code === 'user_confirmed') message = 'L\'utilisateur a été confirmé avec succès';
+  if (code === 'user_updated') message = 'L\'utilisateur a été modifié avec succès';
   if (code === 'password_updated') message = 'Le mot de passe a été modifié avec succès';
   if (code === 'tokens_updated') message = 'Les tokens ont été mis à jour avec succès';
   if (code === 'device_revoked') message = 'L\'accès à l\'application pour cet appareil a été révoqué avec succès';
@@ -48,6 +49,7 @@ response.error = (res, status, errors = []) => {
       if (error === 'invalid_param_value') tab.push({ message: 'Valeur(s) d\'un ou plusieurs paramètre est / sont invalide(s)', code: error });
       if (error === 'invalid_phone_number') tab.push({ message: 'Numéro de téléphone invalide', code: error });
       if (error === 'invalid_email_address') tab.push({ message: 'Adresse email invalide', code: error });
+      if (error === 'alias_too_short') tab.push({ message: 'Alias trop court (4 caractères minimum)', code: error });
       if (error === 'password_too_short') tab.push({ message: 'Mot de passe trop court (6 caractères minimum)', code: error });
       if (error === 'email_address_already_taken') tab.push({ message: 'Cette adresse email est déjà existante', code: error });
       if (error === 'alias_already_taken') tab.push({ message: 'Cet alias est déjà existant', code: error });
