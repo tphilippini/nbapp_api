@@ -173,13 +173,29 @@ userController.patch = (req, res) => {
 
           if (errors.length === 0) {
             User.findOneByUUID(uuid, (result) => {
-              if (result && result.uuid == uuid) {
-                result.alias = alias
-                result.email = email
-                result.firstName = firstName
-                result.lastName = lastName
+              if (result) {
+                if (result.uuid == uuid) {                  
+                  if (result.email == email) {
+                    User.doesThisExist({ alias, uuid: { "$ne": uuid }}, (exists) => {
+                      if (exists) {
+                        errors.push('alias_already_taken');
+                        checkEvent.emit('error', errors);
+                      } else {
+                        result.alias = alias
+                        result.firstName = firstName
+                        result.lastName = lastName
 
-                checkEvent.emit('success_update_grant', result);
+                        checkEvent.emit('success_update_grant', result);
+                      }
+                    });
+                  } else {
+                    errors.push('invalid_credentials');
+                    checkEvent.emit('error', errors);
+                  } 
+                } else {
+                  errors.push('invalid_credentials');
+                  checkEvent.emit('error', errors);
+                }            
               } else {
                 errors.push('invalid_credentials');
                 checkEvent.emit('error', errors);
