@@ -1,7 +1,6 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
 const TeamSchema = new mongoose.Schema({
-
   id: Number,
 
   isNBAFranchise: Boolean,

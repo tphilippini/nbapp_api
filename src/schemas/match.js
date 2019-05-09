@@ -1,9 +1,8 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-const MatchSchema = new mongoose.Schema({
-  
+let MatchSchema = new mongoose.Schema({
   id: Number,
-  
+
   matchId: { type: String, required: true, unique: true },
 
   isGameActivated: Boolean,
@@ -54,5 +53,26 @@ const MatchSchema = new mongoose.Schema({
 
   vTeamQScore: Object
 });
+
+// MatchSchema.virtual("hTeamRecordFormatted").set(() => {
+//   this.hTeamWins + "-" + this.hTeamLosses;
+// });
+
+// MatchSchema.virtual("vTeamRecordFormatted").set(() => {
+//   this.vTeamWins + "-" + this.vTeamLosses;
+// });
+
+// MatchSchema.methods.getMatches = () => {
+//   return new Promise((resolve, reject) => {
+//     this.find((err, result) => {
+//       if (err) {
+//         console.error(err);
+//         return reject(err);
+//       }
+
+//       resolve(result);
+//     });
+//   });
+// };
 
 module.exports = MatchSchema;
