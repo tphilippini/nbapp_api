@@ -4,7 +4,7 @@ import { forEachSeries } from "p-iteration";
 import log from "@/helpers/log";
 import { db } from "@/config/config";
 import TeamSchema from "@/schemas/team";
-import { findTeams } from "./api/nba";
+import { findTeams } from "../api/nba";
 
 async function main(connection) {
   return new Promise(async (resolve, reject) => {

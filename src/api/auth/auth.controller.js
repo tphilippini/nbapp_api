@@ -9,7 +9,7 @@ import ua from "useragent";
 import User from "@/api/users/user.model";
 import Device from "@/api/devices/device.model";
 
-import { api } from "@/config/config";
+import { app, api } from "@/config/config";
 
 import { isSha1 } from "@/helpers/validator";
 import {
@@ -20,6 +20,7 @@ import {
 } from "@/helpers/token";
 import response from "@/helpers/response";
 import log from "@/helpers/log";
+import mailer from "@/helpers/mailer";
 
 const authController = {};
 
@@ -334,6 +335,78 @@ authController.reset = (req, res) => {
   checkEvent.on("success_reset_grant", (uid, hash) => {
     User.updateOneColumn(["password", hash, uid], () => {
       response.success(res, 200, "password_updated");
+    });
+  });
+
+  checking();
+};
+
+authController.forgot = (req, res) => {
+  const grantType = req.body.grant_type;
+  const userType = req.body.user_type;
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    if (!grantType) {
+      errors.push("missing_params");
+    } else {
+      const allowedUserTypes = ["user"];
+
+      if (grantType === "forgot") {
+        log.info("Hi! Send reset link password...");
+
+        const email = req.body.email;
+
+        if (!email || !userType) {
+          errors.push("missing_params");
+        } else {
+          if (allowedUserTypes.indexOf(userType) === -1) {
+            errors.push("invalid_user_type");
+          }
+
+          if (errors.length === 0) {
+            User.findOneByEmail(email, result => {
+              if (result) {
+                checkEvent.emit("success_forgot_grant", result);
+              } else {
+                errors.push("invalid_credentials");
+                checkEvent.emit("error", errors);
+              }
+            });
+          }
+        }
+      } else {
+        errors.push("invalid_grant_type");
+      }
+    }
+
+    if (errors.length > 0) {
+      checkEvent.emit("error", errors);
+    }
+  };
+
+  checkEvent.on("error", err => {
+    let status = 400;
+
+    if (err[0] === "invalid_credentials") {
+      status = 401;
+    }
+
+    response.error(res, status, err);
+  });
+
+  checkEvent.on("success_forgot_grant", result => {
+    const resetToken = generateResetToken(result.uuid, userType);
+    result.link = `//${app().host}:${app().port}/reset/${resetToken}`;
+
+    mailer.sendResetPasswordEmail(result, (err, info) => {
+      if (err) response.error(res, 400, ["mailer_failed"]);
+
+      log.success("Hi! Reset password email sent...");
+      response.success(res, 200, "user_forgot");
     });
   });
 

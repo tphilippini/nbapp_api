@@ -26,6 +26,9 @@ response.success = (res, status, code, ...data) => {
 
   if (code === "result_found")
     message = "Un ou plusieurs résultats ont été trouvé avec succès";
+  if (code === "user_forgot")
+    message =
+      "Un email pour réinitialiser votre mot de passe a été envoyé avec succès";
   if (code === "result_empty") message = "Aucun résultat n'a été trouvé";
 
   const success = {
@@ -63,6 +66,11 @@ response.error = (res, status, errors = []) => {
       if (error === "too_many_params")
         tab.push({
           message: "Trop de paramètres ont été envoyés",
+          code: error
+        });
+      if (error === "mailer_failed")
+        tab.push({
+          message: "Envoi du mail invalide",
           code: error
         });
       if (error === "invalid_param_value")

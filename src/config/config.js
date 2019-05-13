@@ -128,35 +128,35 @@ const youtube = () => {
   return conf[process.env.NODE_ENV];
 };
 
-// const mail = () => {
-//   const conf = {
-//     test: {
-//       host: 'smtp.mailtrap.io',
-//       port: 2525,
-//       auth: {
-//         user: '07db3c7b2af442',
-//         pass: 'cb8e99e2339ff3'
-//       }
-//     },
-//     dev: {
-//       host: 'smtp.mailtrap.io',
-//       port: 2525,
-//       auth: {
-//         user: '07db3c7b2af442',
-//         pass: 'cb8e99e2339ff3'
-//       }
-//     },
-//     prod: {
-//       host: 'smtp.mailtrap.io',
-//       port: 2525,
-//       auth: {
-//         user: '07db3c7b2af442',
-//         pass: 'cb8e99e2339ff3'
-//       }
-//     }
-//   };
+const mail = () => {
+  const conf = {
+    test: {
+      host: "smtp.mailtrap.io",
+      port: 2525,
+      auth: {
+        user: "07db3c7b2af442",
+        pass: "cb8e99e2339ff3"
+      }
+    },
+    dev: {
+      host: "smtp.mailtrap.io",
+      port: 2525,
+      auth: {
+        user: "07db3c7b2af442",
+        pass: "cb8e99e2339ff3"
+      }
+    },
+    prod: {
+      host: "smtp.mailtrap.io",
+      port: 2525,
+      auth: {
+        user: "07db3c7b2af442",
+        pass: "cb8e99e2339ff3"
+      }
+    }
+  };
 
-//   return conf[process.env.NODE_ENV];
-// };
+  return conf[process.env.NODE_ENV];
+};
 
-export { app, api, db, youtube };
+export { app, api, db, youtube, mail };
