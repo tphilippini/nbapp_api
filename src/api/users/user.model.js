@@ -1,16 +1,16 @@
-'use strict'
+"use strict";
 
-import UserSchema from '@/schemas/user'
-import mongoose from 'mongoose'
+import UserSchema from "@/schemas/user";
+import mongoose from "mongoose";
 
 class User {
   constructor() {
-    this.model = mongoose.model('User', UserSchema, 'User');
+    this.model = mongoose.model("User", UserSchema, "User");
   }
 
   add(data, cb) {
     let newUser = new this.model(data);
-    newUser.save((err) => {
+    newUser.save(err => {
       if (err) throw err;
 
       cb();
@@ -24,7 +24,7 @@ class User {
       if (result) {
         cb(result);
       } else {
-        cb([]);
+        cb(null);
       }
     });
   }
@@ -36,7 +36,7 @@ class User {
       if (result) {
         cb(result);
       } else {
-        cb([]);
+        cb(null);
       }
     });
   }
@@ -48,7 +48,7 @@ class User {
       if (result) {
         cb(result);
       } else {
-        cb([]);
+        cb(null);
       }
     });
   }
