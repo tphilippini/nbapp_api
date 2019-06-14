@@ -157,7 +157,8 @@ authController.post = (req, res) => {
         expires_in: api().access_token.exp,
         refresh_token: refreshToken,
         client_id: deviceId,
-        email: result.email
+        email: result.email,
+        alias: result.alias
       });
     });
   });

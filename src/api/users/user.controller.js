@@ -24,8 +24,6 @@ userController.post = (req, res) => {
   const agent = ua.parse(req.headers["user-agent"]);
   const uaName = agent.toString();
 
-  const firstName = req.body.firstname;
-  const lastName = req.body.lastname;
   const alias = req.body.alias;
   const email = req.body.email;
   const password = req.body.password;
@@ -36,7 +34,7 @@ userController.post = (req, res) => {
   const checking = () => {
     const errors = [];
 
-    if (!lastName || !firstName || !alias || !email || !password) {
+    if (!alias || !email || !password) {
       errors.push("missing_params");
     } else {
       if (!isEmail(email)) {
@@ -85,8 +83,6 @@ userController.post = (req, res) => {
      */
     bcrypt.hash(password, 12, (err, hash) => {
       const newUser = {
-        lastName,
-        firstName,
         alias,
         email,
         password: hash,
@@ -94,7 +90,13 @@ userController.post = (req, res) => {
       };
 
       const deviceId = uuid.v4();
-      const accessToken = generateAccessToken(deviceId, newUser.uuid, "user");
+      const accessToken = generateAccessToken(
+        deviceId,
+        newUser.uuid,
+        alias,
+        email,
+        "user"
+      );
       const refreshToken = generateRefreshToken(deviceId);
 
       User.add(newUser, () => {
@@ -118,7 +120,9 @@ userController.post = (req, res) => {
             token_type: "bearer",
             expires_in: api().access_token.exp,
             refresh_token: refreshToken,
-            client_id: deviceId
+            client_id: deviceId,
+            email,
+            alias
           });
         });
       });
@@ -224,26 +228,27 @@ userController.patch = (req, res) => {
   checking();
 
   checkEvent.on("success_update_grant", result => {
-    User.update(result, user => {
+    User.update(result, () => {
       response.success(res, 200, "user_updated");
     });
   });
 };
 
-userController.getAll = (req, res) => {
-  log.info("Hi! Getting all of the users...");
-  User.getAll(result => {
-    res.json(result);
-  });
-};
+// userController.getAll = (req, res) => {
+//   log.info("Hi! Getting all of the users...");
+
+//   // Verify grant_type admin, not fetch all user like that
+
+//   User.getAll(result => {
+//     res.json(result);
+//   });
+// };
 
 userController.getCurrent = (req, res) => {
   log.info("Hi! Getting current user...");
-  res.json({
-    user: {
-      email: req.user.email,
-      alias: req.user.alias
-    }
+  response.success(res, 200, "user_confirmed", {
+    email: req.user.email,
+    alias: req.user.alias
   });
 };
 
