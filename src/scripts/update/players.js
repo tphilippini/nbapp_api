@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import axios from "axios";
 import { forEachSeries } from "p-iteration";
 
 import log from "@/helpers/log";
 import { db } from "@/config/config";
 import PlayerSchema from "@/schemas/player";
 import TeamSchema from "@/schemas/team";
+import { checkTeamRoster } from "../api/nba";
 
 async function main(connection) {
   return new Promise(async (resolve, reject) => {
@@ -29,14 +29,7 @@ async function grabPlayerNames(playerModel, teamModel) {
 
   await forEachSeries(teams, async (team, i) => {
     await sleep(1000);
-    const FETCH_URL = `http://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2018-19&TeamID=${
-      team.teamId
-    }`;
-    log.success(FETCH_URL);
-    const players = await axios
-      .get(FETCH_URL)
-      .then(res => res.data.resultSets[0].rowSet);
-
+    const players = await checkTeamRoster(team.teamId);
     await forEachSeries(players, async player => {
       const playerToSave = await playerModel.findOne({ playerId: player[12] });
       if (playerToSave) {

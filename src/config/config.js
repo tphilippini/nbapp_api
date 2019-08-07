@@ -128,6 +128,14 @@ const youtube = () => {
   return conf[process.env.NODE_ENV];
 };
 
+const ytChannel = [
+  { title: "MLG Highlights", id: "UCoh_z6QB0AGB1oxWufvbDUg" },
+  { title: "House of highlights", id: "UCqQo7ewe87aYAe7ub5UqXMw" },
+  { title: "Ximo Pierto", id: "UCS7kvhJx431xCKuSgkBaUWw" },
+  { title: "Free dawkins", id: "UCEjOSbbaOfgnfRODEEMYlCw" },
+  { title: "Rapid Highlights", id: "UCdxB6UoY7VggXoaOSvEhSjg" },
+];
+
 const mail = () => {
   const conf = {
     test: {
@@ -159,4 +167,4 @@ const mail = () => {
   return conf[process.env.NODE_ENV];
 };
 
-export { app, api, db, youtube, mail };
+export { app, api, db, youtube, mail, ytChannel };

@@ -149,8 +149,8 @@ userController.patch = (req, res) => {
       if (grantType === "update") {
         log.info("Hi! Updating...");
 
-        const firstName = req.body.firstname;
-        const lastName = req.body.lastname;
+        const firstName = req.body.firstName;
+        const lastName = req.body.lastName;
         const alias = req.body.alias;
         const email = req.body.email;
         const uuid = req.params.uuid;
@@ -229,7 +229,13 @@ userController.patch = (req, res) => {
 
   checkEvent.on("success_update_grant", result => {
     User.update(result, () => {
-      response.success(res, 200, "user_updated");
+      response.success(res, 200, "user_updated", {
+        uuid: result.uuid,
+        email: result.email,
+        alias: result.alias,
+        firstName: result.firstName,
+        lastName: result.lastName
+      });
     });
   });
 };
@@ -246,9 +252,62 @@ userController.patch = (req, res) => {
 
 userController.getCurrent = (req, res) => {
   log.info("Hi! Getting current user...");
-  response.success(res, 200, "user_confirmed", {
-    email: req.user.email,
-    alias: req.user.alias
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    const alias = req.user.alias;
+    const email = req.user.email;
+
+    if (!alias || !email) {
+      errors.push("missing_params");
+    } else {
+      if (!isEmail(email)) {
+        errors.push("invalid_email_address");
+      }
+      if (alias.length < 4) {
+        errors.push("alias_too_short");
+      }
+
+      if (errors.length === 0) {
+        User.findOneByEmail(email, result => {
+          if (result) {            
+            if (result.email == email) {
+              checkEvent.emit("success_current_user", result);
+            } else {
+              errors.push("invalid_credentials");
+              checkEvent.emit("error", errors);
+            }
+          } else {
+            errors.push("invalid_credentials");
+            checkEvent.emit("error", errors);
+          }
+        });
+      }
+    }
+
+    if (errors.length > 0) {
+      checkEvent.emit("error", errors);
+    }
+  };
+
+  checkEvent.on("error", err => {
+    let status = 400;
+    response.error(res, status, err);
+  });
+
+  checking();
+
+  checkEvent.on("success_current_user", result => {
+    response.success(res, 200, "user_confirmed", {
+      uuid: result.uuid,
+      email: result.email,
+      alias: result.alias,
+      firstName: result.firstName,
+      lastName: result.lastName
+    });
   });
 };
 

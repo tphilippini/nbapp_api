@@ -1,8 +1,9 @@
 import moment from "moment";
 import mongoose from "mongoose";
+import { forEachSeries } from "p-iteration";
 
 import log from "@/helpers/log";
-import { db } from "@/config/config";
+import { db, ytChannel } from "@/config/config";
 import MatchSchema from "@/schemas/match";
 import YoutubeVideoSchema from "@/schemas/youtube_video";
 import PlayerSchema from "@/schemas/player";
@@ -22,56 +23,17 @@ async function main(connection, dateFormatted) {
     const TeamModel = connection.model("Team", TeamSchema, "Team");
 
     // YOUTUBE VIDEOS UPDATE
-    // MLG Highlights
-    log.title(`MLG Highlights`);
-    await findAndSaveYoutubeVideos(
-      MatchModel,
-      YoutubeVideoModel,
-      PlayerModel,
-      TeamModel,
-      dateFormatted,
-      "UCoh_z6QB0AGB1oxWufvbDUg"
-    );
-    // House of highlights
-    log.title(`House of highlights`);
-    await findAndSaveYoutubeVideos(
-      MatchModel,
-      YoutubeVideoModel,
-      PlayerModel,
-      TeamModel,
-      dateFormatted,
-      "UCqQo7ewe87aYAe7ub5UqXMw"
-    );
-    // Ximo Pierto
-    log.title(`Ximo Pierto`);
-    await findAndSaveYoutubeVideos(
-      MatchModel,
-      YoutubeVideoModel,
-      PlayerModel,
-      TeamModel,
-      dateFormatted,
-      "UCS7kvhJx431xCKuSgkBaUWw"
-    );
-    // Free dawkins
-    log.title(`Free dawkins`);
-    await findAndSaveYoutubeVideos(
-      MatchModel,
-      YoutubeVideoModel,
-      PlayerModel,
-      TeamModel,
-      dateFormatted,
-      "UCEjOSbbaOfgnfRODEEMYlCw"
-    );
-    // Rapid Highlights
-    log.title(`Rapid Highlights`);
-    await findAndSaveYoutubeVideos(
-      MatchModel,
-      YoutubeVideoModel,
-      PlayerModel,
-      TeamModel,
-      dateFormatted,
-      "UCdxB6UoY7VggXoaOSvEhSjg"
-    );
+    await forEachSeries(ytChannel, async (channel, i) => {
+      log.title(channel.title);
+      await findAndSaveYoutubeVideos(
+        MatchModel,
+        YoutubeVideoModel,
+        PlayerModel,
+        TeamModel,
+        dateFormatted,
+        channel.id
+      );
+    });
 
     resolve();
   });

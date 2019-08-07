@@ -1,6 +1,6 @@
 import moment from 'moment';
 import axios from 'axios';
-import log from '../../helpers/log';
+import log from '@/helpers/log';
 
 async function findTodayMatches(date) {
   return new Promise(async (resolve, reject) => {
@@ -19,10 +19,24 @@ async function findTodayMatches(date) {
 async function findTeams() {
   return new Promise(async (resolve, reject) => {
     try {
-      const uri = `https://data.nba.net/prod/v2/2018/teams.json`;
+      const uri = `https://data.nba.net/prod/v2/${moment().format("Y")}/teams.json`;
       log.success(uri);
       const teams = await axios.get(uri);
       resolve(teams.data.league.standard);
+    } catch (error) {
+      log.error(error);
+      reject(error);
+    }
+  });
+}
+
+async function checkTeamRoster(teamId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const uri = `http://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`
+      log.success(uri);
+      const roster = await axios.get(uri);
+      resolve(roster.data.resultSets[0].rowSet);
     } catch (error) {
       log.error(error);
       reject(error);
@@ -62,5 +76,6 @@ async function checkGameStatus(matches) {
 export {
   findTodayMatches,
   findTeams,
-  checkGameStatus
+  checkGameStatus,
+  checkTeamRoster
 };
