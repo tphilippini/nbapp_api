@@ -93,6 +93,16 @@ response.error = (res, status, errors = []) => {
           message: "Mot de passe trop court (6 caractères minimum)",
           code: error
         });
+      if (error === "password_must_match")
+        tab.push({
+          message: "Les mots de passe doivent être identique",
+          code: error
+        });
+      if (error === "new_password_too_short")
+        tab.push({
+          message: "Nouveau mot de passe trop court (6 caractères minimum)",
+          code: error
+        });
       if (error === "email_address_already_taken")
         tab.push({
           message: "Cette adresse email est déjà existante",

@@ -208,6 +208,61 @@ userController.patch = (req, res) => {
         }
       } else if (grantType === "password") {
         log.info("Hi! Updating password...");
+
+        const password = req.body.password;
+        const newPassword = req.body.new_password;
+        const confirmPassword = req.body.confirm_password;
+        const uuid = req.params.uuid;
+
+        if (!password || !newPassword || !confirmPassword || !uuid || !userType) {
+          errors.push("missing_params");
+        } else {
+          if (allowedUserTypes.indexOf(userType) === -1) {
+            errors.push("invalid_user_type");
+          }
+          if (!isUUID(uuid)) {
+            errors.push("invalid_client");
+          }
+          if (password.length < 6) {
+            errors.push("password_too_short");
+          }
+          if (newPassword.length < 6) {
+            errors.push("new_password_too_short");
+          }
+          if (newPassword !== confirmPassword) {
+            errors.push("password_must_match");
+          }
+
+          if (errors.length === 0) {
+            User.findOneByUUID(uuid, result => {
+              if (result) {
+                if (result.uuid == uuid) {
+                  log.info("Hi! Comparing password...");
+                  bcrypt.compare(password, result.password, (err, isMatch) => {
+                    if (err) throw err;
+  
+                    if (isMatch) {
+                      log.info("Hi! Updating new password...");
+                      checkEvent.emit("success_update_password_grant", result, newPassword);
+                    } else {
+                      errors.push("invalid_credentials");
+                      checkEvent.emit("error", errors);
+                    }
+                  });
+                } else {
+                  errors.push("invalid_credentials");
+                  checkEvent.emit("error", errors);
+                }
+              } else {
+                errors.push("invalid_credentials");
+                checkEvent.emit("error", errors);
+              }
+            });
+          }
+          // Verifier si password est identique a celui du user
+          // crypt new password
+          // retrieve user and success retourne user
+        }
       } else if (grantType === "confirmed") {
         log.info("Hi! Updating confirmation...");
       } else {
@@ -235,6 +290,22 @@ userController.patch = (req, res) => {
         alias: result.alias,
         firstName: result.firstName,
         lastName: result.lastName
+      });
+    });
+  });
+
+  checkEvent.on("success_update_password_grant", (result, newPassword) => {
+    bcrypt.hash(newPassword, 12, (err, hash) => {
+      result.password = hash;
+
+      User.update(result, () => {
+        response.success(res, 200, "user_updated", {
+          uuid: result.uuid,
+          email: result.email,
+          alias: result.alias,
+          firstName: result.firstName,
+          lastName: result.lastName
+        });
       });
     });
   });
