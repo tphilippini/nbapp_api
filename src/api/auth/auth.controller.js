@@ -274,9 +274,9 @@ authController.reset = (req, res) => {
 
         const token = req.body.token;
         const password = req.body.password;
-        const passwordConfirmation = req.body.passwordConfirmation;
+        const confirmPassword = req.body.confirm_password;
 
-        if (!token || !userType || !password || !passwordConfirmation) {
+        if (!token || !userType || !password || !confirmPassword) {
           errors.push("missing_params");
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
@@ -287,18 +287,21 @@ authController.reset = (req, res) => {
             errors.push("password_too_short");
           }
 
+          if (password !== confirmPassword) {
+            errors.push("password_must_match");
+          }
+
           if (errors.length === 0) {
+            log.info("Hi! Validating token...");
             validateToken(token, (result, decoded) => {
               if (result && decoded) {
-                const model = User;
-
-                model.findOneByUUID(decoded.user, u => {
-                  if (u.length > 0) {
+                User.findOneByUUID(decoded.user, u => {
+                  if (u) {
                     bcrypt.hash(password, 12, (err, hash) => {
                       if (err) throw err;
 
                       if (hash) {
-                        checkEvent.emit("success_reset_grant", u[0].uuid, hash);
+                        checkEvent.emit("success_reset_grant", u.uuid, hash);
                       } else {
                         errors.push("invalid_credentials");
                         checkEvent.emit("error", errors);
@@ -337,7 +340,10 @@ authController.reset = (req, res) => {
   });
 
   checkEvent.on("success_reset_grant", (uid, hash) => {
-    User.updateOneColumn(["password", hash, uid], () => {
+    User.update({
+      uuid: uid,
+      password: hash
+    }, () => {
       response.success(res, 200, "password_updated");
     });
   });

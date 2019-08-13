@@ -12,12 +12,13 @@ class Mailer {
       "compile",
       hbs({
         viewEngine: {
-          extName: ".hbs",
+          extName: ".handlebars",
           partialsDir: "src/views/partials",
-          layoutsDir: "src/views/emails"
+          layoutsDir: "src/views/emails",
+          defaultLayout: 'default',
         },
         viewPath: "src/views/emails",
-        extName: ".hbs"
+        extName: ".handlebars"
       })
     );
   }
