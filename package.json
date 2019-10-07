@@ -9,6 +9,7 @@
     "update:players": "babel-node ./src/scripts/update/players.js",
     "update:teams": "babel-node ./src/scripts/update/teams.js",
     "update:youtube-videos": "babel-node ./src/scripts/update/youtube-videos.js",
+    "update:connect-youtube-api": "babel-node ./src/scripts/update/connect-youtube-api.js",
     "start": "nodemon --exec babel-node --use_strict ./src/index.js",
     "build": "babel ./src --out-dir ./dist",
     "serve": "node ./dist/index.js"

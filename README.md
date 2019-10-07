@@ -1,13 +1,13 @@
 # NBA APP BACKEND API
 
 ## TODO:
+
 0. Send forgot email
 1. Create Youtube Channel Id list
-2. Refacto determinePlayer dans les videos
-2. Mettre les playersId dans les videos youtube schema
-3. Mettre les videoId dans le playerSchema
-4. Mettre les matchStat dans le playerSchema
-
+1. Refacto determinePlayer dans les videos
+1. Mettre les playersId dans les videos youtube schema
+1. Mettre les videoId dans le playerSchema
+1. Mettre les matchStat dans le playerSchema
 
 - Si désactivation de compte : clear tokens de l'app + révoquer tous les devices de l'utilisateur
 
@@ -25,7 +25,7 @@ Notre système d'authentification est multi-devices, il est possible d'être con
 
 On veut que notre projet soit multi-devices, donc possibilité d'être authentifié sur plusieurs appareils en même temps. Par conséquent on par du principe qu'un utilisateur peut avoir plusieurs devices, qui eux vont être authentifié
 
-Requête : /auth/token (email=xxx&password=xxx&user_typer=rider|driver&grant_type=password)
+Requête : /auth/token (email=xxx&password=xxx&user_typer=user&grant_type=password)
 Réponse : https://i.gyazo.com/2f697fb402116b23c9a8f128982ba6c4.png
 Requête : /ressource-protégée (Authorization: Bearer access_token)
 Réponse : infos de la ressource protégée
@@ -37,8 +37,9 @@ Réponse : pareil que l'étape 2 avec un nouveau access_token et refresh_token
 Delete all device when user is remove
 https://www.robinwieruch.de/mongodb-express-setup-tutorial/
 userSchema.pre('remove', function(next) {
-  this.model('Device').deleteMany({ user: this._id }, next);
+this.model('Device').deleteMany({ user: this.\_id }, next);
 });
 
 ## Authors
-* **tphilippini**
+
+- **tphilippini**
