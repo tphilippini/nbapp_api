@@ -24,7 +24,7 @@ async function main(connection, dateFormatted) {
     // MATCHES
     log.info('Finding today matches...');
     const todaysMatches = await findTodayMatches(dateFormatted);
-    log.default('Todays matches found :', todaysMatches.length);
+    log.info(`Todays matches found : ${todaysMatches.length}`);
     if (todaysMatches.length > 0) {
       await saveMatchesOrUpdate(todaysMatches, MatchModel);
       log.info('----------------------------------');
@@ -47,7 +47,8 @@ mongoose.connect(
   DATABASE_URL,
   {
     useNewUrlParser: true,
-    useCreateIndex: true
+    useCreateIndex: true,
+    useUnifiedTopology: true
   },
   function(error, connection) {
     if (error) return funcCallback(error);

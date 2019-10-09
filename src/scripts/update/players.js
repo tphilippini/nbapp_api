@@ -1,16 +1,16 @@
-import mongoose from "mongoose";
-import { forEachSeries } from "p-iteration";
+import mongoose from 'mongoose';
+import { forEachSeries } from 'p-iteration';
 
-import log from "@/helpers/log";
-import { db } from "@/config/config";
-import PlayerSchema from "@/schemas/player";
-import TeamSchema from "@/schemas/team";
-import { checkTeamRoster } from "../api/nba";
+import log from '@/helpers/log';
+import { db } from '@/config/config';
+import PlayerSchema from '@/schemas/player';
+import TeamSchema from '@/schemas/team';
+import { checkTeamRoster } from '../api/nba';
 
 async function main(connection) {
   return new Promise(async (resolve, reject) => {
-    const PlayerModel = connection.model("Player", PlayerSchema, "Player");
-    const TeamModel = connection.model("Team", TeamSchema, "Team");
+    const PlayerModel = connection.model('Player', PlayerSchema, 'Player');
+    const TeamModel = connection.model('Team', TeamSchema, 'Team');
 
     // PLAYERS
     await grabPlayerNames(PlayerModel, TeamModel);
@@ -23,9 +23,9 @@ async function grabPlayerNames(playerModel, teamModel) {
   const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 
   // TEAMS
-  log.info("Finding teams...");
+  log.info('Finding teams...');
   const teams = await teamModel.find({ isNBAFranchise: true });
-  log.default("Teams found :", teams.length);
+  log.default('Teams found :', teams.length);
 
   await forEachSeries(teams, async (team, i) => {
     await sleep(1000);
@@ -33,13 +33,13 @@ async function grabPlayerNames(playerModel, teamModel) {
     await forEachSeries(players, async player => {
       const playerToSave = await playerModel.findOne({ playerId: player[12] });
       if (playerToSave) {
-        log.info("----------------------------------");
-        log.info("Player exists, updating the record now...");
+        log.info('----------------------------------');
+        log.info('Player exists, updating the record now...');
         playerToSave.name = player[3];
-        playerToSave.firstName = player[3].split(" ")[0];
-        playerToSave.lastName = player[3].split(" ")[1]
-          ? player[3].split(" ")[1]
-          : "";
+        playerToSave.firstName = player[3].split(' ')[0];
+        playerToSave.lastName = player[3].split(' ')[1]
+          ? player[3].split(' ')[1]
+          : '';
         playerToSave.number = player[4];
         playerToSave.position = player[5];
         playerToSave.height = player[6];
@@ -57,16 +57,16 @@ async function grabPlayerNames(playerModel, teamModel) {
             log.success(`Player updated...`);
           });
         } catch (error) {
-          log.error("Player doesnt update, see error...");
+          log.error('Player doesnt update, see error...');
           log.error(error);
         }
       } else {
-        log.info("----------------------------------");
-        log.info("Player doesnt exist, creating new record now...");
+        log.info('----------------------------------');
+        log.info('Player doesnt exist, creating new record now...');
         const newPlayer = {
           name: player[3],
-          firstName: player[3].split(" ")[0],
-          lastName: player[3].split(" ")[1] ? player[3].split(" ")[1] : "",
+          firstName: player[3].split(' ')[0],
+          lastName: player[3].split(' ')[1] ? player[3].split(' ')[1] : '',
           number: player[4],
           position: player[5],
           height: player[6],
@@ -82,10 +82,10 @@ async function grabPlayerNames(playerModel, teamModel) {
         try {
           let player = new playerModel(newPlayer);
           await player.save().then(m => {
-            log.success("Player saved...");
+            log.success('Player saved...');
           });
         } catch (error) {
-          log.error("Player doesnt save, see error...");
+          log.error('Player doesnt save, see error...');
           log.error(error);
         }
       }
@@ -94,7 +94,7 @@ async function grabPlayerNames(playerModel, teamModel) {
 
   const count = await playerModel.estimatedDocumentCount({});
   log.info(`Total players saved : ${count}`);
-  log.info("----------------------------------");
+  log.info('----------------------------------');
 }
 
 const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
@@ -103,17 +103,18 @@ mongoose.connect(
   DATABASE_URL,
   {
     useNewUrlParser: true,
-    useCreateIndex: true
+    useCreateIndex: true,
+    useUnifiedTopology: true
   },
   function(error, connection) {
     if (error) return funcCallback(error);
 
-    log.title("Initialization");
+    log.title('Initialization');
     log.info(`Connected to the database ${db().name}`);
 
-    log.title("Main");
+    log.title('Main');
     main(connection).then(() => {
-      log.info("Closed database connection");
+      log.info('Closed database connection');
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
     });

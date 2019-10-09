@@ -8,14 +8,8 @@ async function saveMatchesOrUpdate(games, matchModel) {
     // if match exists and it's not over, update it
     if (existingMatch && existingMatch.statusNum !== 3) {
       log.info('----------------------------------');
-      log.default(
-        game.hTeam.triCode +
-          ' ' +
-          game.hTeam.score +
-          ' @ ' +
-          game.vTeam.score +
-          ' ' +
-          game.vTeam.triCode
+      log.info(
+        `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
       );
       log.info('Match exists, game is live, updating the record now...');
       existingMatch.isGameActivated = game.isGameActivated;
@@ -43,14 +37,8 @@ async function saveMatchesOrUpdate(games, matchModel) {
       }
     } else if (existingMatch && existingMatch.statusNum === 3) {
       log.info('----------------------------------');
-      log.default(
-        game.hTeam.triCode +
-          ' ' +
-          game.hTeam.score +
-          ' @ ' +
-          game.vTeam.score +
-          ' ' +
-          game.vTeam.triCode
+      log.info(
+        `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
       );
       log.info('Match exists, game is over, updating the record now...');
       existingMatch.endTimeUTC = game.endTimeUTC;
@@ -71,14 +59,8 @@ async function saveMatchesOrUpdate(games, matchModel) {
       }
     } else {
       log.info('----------------------------------');
-      log.default(
-        game.hTeam.triCode +
-          ' ' +
-          game.hTeam.score +
-          ' @ ' +
-          game.vTeam.score +
-          ' ' +
-          game.vTeam.triCode
+      log.info(
+        `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
       );
       log.info('Match doesnt exist, creating new record now...');
       const match = {

@@ -1,14 +1,14 @@
-import mongoose from "mongoose";
-import { forEachSeries } from "p-iteration";
+import mongoose from 'mongoose';
+import { forEachSeries } from 'p-iteration';
 
-import log from "@/helpers/log";
-import { db } from "@/config/config";
-import TeamSchema from "@/schemas/team";
-import { findTeams } from "../api/nba";
+import log from '@/helpers/log';
+import { db } from '@/config/config';
+import TeamSchema from '@/schemas/team';
+import { findTeams } from '../api/nba';
 
 async function main(connection) {
   return new Promise(async (resolve, reject) => {
-    const teamModel = connection.model("Team", TeamSchema, "Team");
+    const teamModel = connection.model('Team', TeamSchema, 'Team');
 
     // TEAMS
     await grabTeams(teamModel);
@@ -21,18 +21,19 @@ async function grabTeams(teamModel) {
   const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 
   // TEAMS
-  log.info("Finding teams...");
+  log.info('Finding teams...');
   const teams = await findTeams();
-  log.default("Teams found :", teams.length);
+  log.info(`Teams found : ${teams.length}`);
 
   await forEachSeries(teams, async (team, i) => {
     if (team.isNBAFranchise) {
-      await sleep(1000);
+      // await sleep(1000);
 
       const teamToSave = await teamModel.findOne({ teamId: team.teamId });
       if (teamToSave) {
-        log.info("----------------------------------");
-        log.info("Team exists, updating the record now...");
+        log.info('----------------------------------');
+        log.info(`${team.fullName}`);
+        log.info('Team exists, updating the record now...');
         teamToSave.isNBAFranchise = team.isNBAFranchise;
         teamToSave.city = team.city;
         teamToSave.teamId = team.teamId;
@@ -48,12 +49,13 @@ async function grabTeams(teamModel) {
             log.success(`Team updated...`);
           });
         } catch (error) {
-          log.error("Team doesnt update, see error...");
+          log.error('Team doesnt update, see error...');
           log.error(error);
         }
       } else {
-        log.info("----------------------------------");
-        log.info("Team doesnt exist, creating new record now...");
+        log.info('----------------------------------');
+        log.info(`${team.fullName}`);
+        log.info('Team doesnt exist, creating new record now...');
         const newTeam = {
           isNBAFranchise: team.isNBAFranchise,
           city: team.city,
@@ -68,10 +70,10 @@ async function grabTeams(teamModel) {
         try {
           let t = new teamModel(newTeam);
           await t.save().then(m => {
-            log.success("Team saved...");
+            log.success('Team saved...');
           });
         } catch (error) {
-          log.error("Team doesnt save, see error...");
+          log.error('Team doesnt save, see error...');
           log.error(error);
         }
       }
@@ -79,8 +81,9 @@ async function grabTeams(teamModel) {
   });
 
   const count = await teamModel.estimatedDocumentCount({});
-  log.info(`Total teams saved : ${count}`);
-  log.info("----------------------------------");
+  log.info('----------------------------------');
+  log.info('----------------------------------');
+  log.success(`${count} Teams save/update complete...`);
 }
 
 const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
@@ -89,17 +92,19 @@ mongoose.connect(
   DATABASE_URL,
   {
     useNewUrlParser: true,
-    useCreateIndex: true
+    useCreateIndex: true,
+    useUnifiedTopology: true
   },
   function(error, connection) {
     if (error) return funcCallback(error);
 
-    log.title("Initialization");
+    log.title('Initialization');
     log.info(`Connected to the database ${db().name}`);
 
-    log.title("Main");
+    log.title('Main');
     main(connection).then(() => {
-      log.info("Closed database connection");
+      log.info('----------------------------------');
+      log.info('Closed database connection');
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
     });
