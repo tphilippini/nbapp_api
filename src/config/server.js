@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 
 import { api, db } from '@/config/config';
 // import conn from '@/config/database';
+// import passport from '@/config/passport';
+
 import { version } from '@@/package.json';
 
 import corsMidd from '@/middlewares/cors';
@@ -17,6 +19,8 @@ import deviceRouter from '@/api/devices/device.routes';
 import userRouter from '@/api/users/user.routes';
 import matchRouter from '@/api/matches/match.routes';
 import authRouter from '@/api/auth/auth.routes';
+
+// import models, { connectDb } from '@/models';
 
 import log from '@/helpers/log';
 
@@ -46,6 +50,8 @@ class Server {
         })
       );
 
+      // app.use(passport.initialize());
+
       // Auth middleware
       app.use(
         expressJwt({
@@ -57,7 +63,8 @@ class Server {
             `${api().version}/auth/token`,
             `${api().version}/auth/forgot`,
             `${api().version}/auth/reset`,
-            `${api().version}/auth/validate`
+            `${api().version}/auth/validate`,
+            `${api().version}/users/test`
           ]
         })
       );
@@ -85,7 +92,6 @@ class Server {
       app.use(`${api().version}/matches`, matchRouter);
       // Could use decentralized authorization server
       app.use(`${api().version}/auth`, authRouter);
-
       app.use(function(req, res) {
         res
           .status(404)
