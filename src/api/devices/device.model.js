@@ -1,21 +1,35 @@
-'use strict'
+import mongoose from 'mongoose';
 
-import DeviceSchema from '@/schemas/device'
-import mongoose from 'mongoose'
+const DevicesSchema = new mongoose.Schema(
+  {
+    id: Number,
 
-class Device {
-  constructor() {
-    this.model = mongoose.model('Device', DeviceSchema, 'Device');
-  }
+    uuid: { type: String, required: true, unique: true, index: true },
 
-  add(data, cb) {
-    let newDevice = new this.model(data);
-    newDevice.save((err) => {
-      if (err) throw err;
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
 
-      cb();
-    });
-  }
-}
+    // userId: { type: String, required: true, index: true },
 
-export default new Device();
+    userType: String,
+
+    refreshToken: { type: String, unique: true },
+
+    revoked: { type: Boolean, default: false },
+
+    name: {
+      type: String,
+      lowercase: true,
+      required: true
+    },
+
+    ua: {
+      type: String,
+      lowercase: true,
+      required: true
+    }
+  },
+  { timestamps: true }
+);
+
+const Devices = mongoose.model('Devices', DevicesSchema, 'Devices');
+export default Devices;

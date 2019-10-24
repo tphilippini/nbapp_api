@@ -1,7 +1,6 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
-const PlayerSchema = new mongoose.Schema({
-
+const PlayersSchema = new mongoose.Schema({
   id: Number,
 
   name: String,
@@ -31,4 +30,5 @@ const PlayerSchema = new mongoose.Schema({
   teamName: String
 });
 
-module.exports = PlayerSchema;
+const Players = mongoose.model('Players', PlayersSchema, 'Players');
+export default Players;

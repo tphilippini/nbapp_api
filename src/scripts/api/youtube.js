@@ -18,7 +18,6 @@ async function videoFromChannel(channelId, query, gameStartTime) {
       const videos = await searchChannel(auth, channelId, query, gameStartTime);
       resolve(videos.data);
     } catch (error) {
-      // log.default(error);
       reject(error);
     }
   });
@@ -102,7 +101,7 @@ function searchChannel(auth, channelId, q, publishedAfter) {
       },
       (err, response) => {
         if (err) {
-          log.error(`The API returned an error:${err}`);
+          log.error(`The API returned an error:\n${err}`);
           reject(err);
         } else {
           resolve(response);

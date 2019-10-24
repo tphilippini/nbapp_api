@@ -1,27 +1,37 @@
-"use strict";
+import mongoose from 'mongoose';
 
-import TeamSchema from "@/schemas/team";
-import mongoose from "mongoose";
+const TeamsSchema = new mongoose.Schema({
+  id: Number,
 
-class Team {
-  constructor() {
-    this.model = mongoose.model("Team", TeamSchema, "Team");
-  }
+  isNBAFranchise: Boolean,
 
-  findOneByID(data, cb) {
-    this.model
-      .findOne({ teamId: data }, (err, result) => {
-        if (err) throw err;
+  city: String,
 
-        if (result) {
-          cb(result);
-        } else {
-          cb([]);
-        }
-      }) // hide versionKey and id on response
-      .select("-__v")
-      .select("-_id");
-  }
-}
+  teamId: { type: String, required: true, unique: true },
 
-export default new Team();
+  teamName: String,
+
+  teamShortName: String,
+
+  teamTriCode: String,
+
+  confName: String,
+
+  divName: String
+});
+
+TeamsSchema.statics.findOneByTeamId = function(teamId) {
+  return new Promise((resolve, reject) => {
+    this.findOne({ teamId }, (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    })
+      .select('-__v')
+      .select('-_id');
+  });
+};
+
+const Teams = mongoose.model('Teams', TeamsSchema, 'Teams');
+export default Teams;

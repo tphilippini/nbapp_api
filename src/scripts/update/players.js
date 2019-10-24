@@ -3,35 +3,37 @@ import { forEachSeries } from 'p-iteration';
 
 import log from '@/helpers/log';
 import { db } from '@/config/config';
-import PlayerSchema from '@/schemas/player';
-import TeamSchema from '@/schemas/team';
+import Teams from '@/api/teams/team.model';
+import Players from '@/api/players/player.model';
+
 import { checkTeamRoster } from '../api/nba';
 
 async function main(connection) {
   return new Promise(async (resolve, reject) => {
-    const PlayerModel = connection.model('Player', PlayerSchema, 'Player');
-    const TeamModel = connection.model('Team', TeamSchema, 'Team');
-
-    // PLAYERS
-    await grabPlayerNames(PlayerModel, TeamModel);
-
-    resolve();
+    try {
+      // PLAYERS
+      await grabPlayerNames();
+      resolve();
+    } catch (error) {
+      log.error('Player doesnt save, see error...');
+      log.error(error);
+      reject(error);
+    }
   });
 }
 
-async function grabPlayerNames(playerModel, teamModel) {
+async function grabPlayerNames() {
   const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
-
   // TEAMS
   log.info('Finding teams...');
-  const teams = await teamModel.find({ isNBAFranchise: true });
-  log.default('Teams found :', teams.length);
+  const teams = await Teams.find({ isNBAFranchise: true });
+  log.info(`Teams found : ${teams.length}`);
 
   await forEachSeries(teams, async (team, i) => {
     await sleep(1000);
     const players = await checkTeamRoster(team.teamId);
     await forEachSeries(players, async player => {
-      const playerToSave = await playerModel.findOne({ playerId: player[12] });
+      const playerToSave = await Players.findOne({ playerId: player[12] });
       if (playerToSave) {
         log.info('----------------------------------');
         log.info('Player exists, updating the record now...');
@@ -52,7 +54,7 @@ async function grabPlayerNames(playerModel, teamModel) {
         playerToSave.teamTriCode = team.teamTriCode;
 
         try {
-          let existingPlayer = new playerModel(playerToSave);
+          let existingPlayer = new Players(playerToSave);
           await existingPlayer.updateOne(playerToSave).then(m => {
             log.success(`Player updated...`);
           });
@@ -80,7 +82,7 @@ async function grabPlayerNames(playerModel, teamModel) {
         };
 
         try {
-          let player = new playerModel(newPlayer);
+          let player = new Players(newPlayer);
           await player.save().then(m => {
             log.success('Player saved...');
           });
@@ -92,7 +94,7 @@ async function grabPlayerNames(playerModel, teamModel) {
     });
   });
 
-  const count = await playerModel.estimatedDocumentCount({});
+  const count = await Players.estimatedDocumentCount({});
   log.info(`Total players saved : ${count}`);
   log.info('----------------------------------');
 }

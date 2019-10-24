@@ -6,8 +6,8 @@ import bcrypt from 'bcrypt';
 import EventEmitter from 'events';
 import ua from 'useragent';
 
-import Users from '@/models/users';
-import Devices from '@/models/devices';
+import Users from '@/api/users/user.model';
+import Devices from '@/api/devices/device.model';
 
 import { api } from '@/config/config';
 import { generateAccessToken, generateRefreshToken } from '@/helpers/token';

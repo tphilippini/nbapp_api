@@ -3,23 +3,25 @@ import { forEachSeries } from 'p-iteration';
 
 import log from '@/helpers/log';
 import { db } from '@/config/config';
-import TeamSchema from '@/schemas/team';
+import Teams from '@/api/teams/team.model';
+
 import { findTeams } from '../api/nba';
 
-async function main(connection) {
+async function main() {
   return new Promise(async (resolve, reject) => {
-    const teamModel = connection.model('Team', TeamSchema, 'Team');
-
-    // TEAMS
-    await grabTeams(teamModel);
-
-    resolve();
+    try {
+      // TEAMS
+      await grabTeams();
+      resolve();
+    } catch (error) {
+      log.error('Team doesnt save, see error...');
+      log.error(error);
+      reject();
+    }
   });
 }
 
-async function grabTeams(teamModel) {
-  const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
-
+async function grabTeams() {
   // TEAMS
   log.info('Finding teams...');
   const teams = await findTeams();
@@ -27,9 +29,7 @@ async function grabTeams(teamModel) {
 
   await forEachSeries(teams, async (team, i) => {
     if (team.isNBAFranchise) {
-      // await sleep(1000);
-
-      const teamToSave = await teamModel.findOne({ teamId: team.teamId });
+      const teamToSave = await Teams.findOne({ teamId: team.teamId });
       if (teamToSave) {
         log.info('----------------------------------');
         log.info(`${team.fullName}`);
@@ -44,7 +44,7 @@ async function grabTeams(teamModel) {
         teamToSave.divName = team.divName;
 
         try {
-          let existingTeam = new teamModel(teamToSave);
+          let existingTeam = new Teams(teamToSave);
           await existingTeam.updateOne(teamToSave).then(m => {
             log.success(`Team updated...`);
           });
@@ -68,7 +68,7 @@ async function grabTeams(teamModel) {
         };
 
         try {
-          let t = new teamModel(newTeam);
+          let t = new Teams(newTeam);
           await t.save().then(m => {
             log.success('Team saved...');
           });
@@ -80,7 +80,7 @@ async function grabTeams(teamModel) {
     }
   });
 
-  const count = await teamModel.estimatedDocumentCount({});
+  const count = await Teams.estimatedDocumentCount({});
   log.info('----------------------------------');
   log.info('----------------------------------');
   log.success(`${count} Teams save/update complete...`);
@@ -102,7 +102,7 @@ mongoose.connect(
     log.info(`Connected to the database ${db().name}`);
 
     log.title('Main');
-    main(connection).then(() => {
+    main().then(() => {
       log.info('----------------------------------');
       log.info('Closed database connection');
       connection.close();

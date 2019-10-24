@@ -1,77 +1,100 @@
-"use strict";
+import mongoose from 'mongoose';
 
-import UserSchema from "@/schemas/user";
-import mongoose from "mongoose";
+const UsersSchema = new mongoose.Schema(
+  {
+    id: Number,
 
-class User {
-  constructor() {
-    this.model = mongoose.model("User", UserSchema, "User");
-  }
+    uuid: { type: String, required: true, unique: true, index: true },
 
-  add(data, cb) {
-    let newUser = new this.model(data);
-    newUser.save(err => {
-      if (err) throw err;
+    lastName: String,
 
-      cb();
-    });
-  }
+    firstName: String,
 
-  findOneByEmail(data, cb) {
-    this.model.findOne({ email: data }, (err, result) => {
-      if (err) throw err;
+    alias: {
+      type: String,
+      lowercase: true,
+      required: [true, "can't be blank"],
+      match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
+      unique: true
+    },
 
-      if (result) {
-        cb(result);
-      } else {
-        cb(null);
+    email: {
+      type: String,
+      lowercase: true,
+      required: [true, "can't be blank"],
+      match: [/\S+@\S+\.\S+/, 'is invalid'],
+      unique: true,
+      index: true
+    },
+
+    password: { type: String, required: true },
+
+    confirmed: { type: Boolean, default: false }
+  },
+  { timestamps: true }
+);
+
+// UsersSchema.statics.findByName = (name, cb) => {
+//   this.find({ alias: new RegExp(name, 'i') }, cb);
+// };
+
+UsersSchema.statics.findByAlias = function(alias) {
+  return new Promise((resolve, reject) => {
+    this.findOne({ alias: new RegExp(alias, 'i') }, (error, docs) => {
+      if (error) {
+        return reject(error);
       }
+      resolve(docs);
     });
-  }
+  });
+};
 
-  findOneByUUID(data, cb) {
-    this.model.findOne({ uuid: data }, (err, result) => {
-      if (err) throw err;
-
-      if (result) {
-        cb(result);
-      } else {
-        cb(null);
+UsersSchema.statics.findOneByUUID = function(data) {
+  return new Promise((resolve, reject) => {
+    this.findOne({ uuid: data }, (error, docs) => {
+      if (error) {
+        return reject(error);
       }
+      resolve(docs);
     });
-  }
+  });
+};
 
-  update(data, cb) {
-    this.model.updateOne(data, (err, result) => {
-      if (err) throw err;
-
-      if (result) {
-        cb(result);
-      } else {
-        cb(null);
+UsersSchema.statics.findOneByEmail = function(data) {
+  return new Promise((resolve, reject) => {
+    this.findOne({ email: data }, (error, docs) => {
+      if (error) {
+        return reject(error);
       }
+      resolve(docs);
     });
-  }
+  });
+};
 
-  doesThisExist(data, cb) {
-    this.model.findOne(data, (err, result) => {
-      if (err) throw err;
-
-      if (result) {
-        cb(true);
-      } else {
-        cb(false);
+UsersSchema.statics.getUsers = function() {
+  return new Promise((resolve, reject) => {
+    this.find((error, docs) => {
+      if (error) {
+        return reject(error);
       }
+      resolve(docs);
     });
-  }
+  });
+};
 
-  getAll(cb) {
-    this.model.find({}, (err, result) => {
-      if (err) throw err;
-
-      cb(result);
+UsersSchema.statics.doesThisExist = function(data) {
+  return new Promise((resolve, reject) => {
+    this.findOne(data, (error, res) => {
+      if (error) return reject(error);
+      if (res) resolve(true);
+      else resolve(false);
     });
-  }
-}
+  });
+};
 
-export default new User();
+UsersSchema.pre('remove', next => {
+  this.model('Devices').deleteMany({ userId: this._id }, next);
+});
+
+const Users = mongoose.model('Users', UsersSchema, 'Users');
+export default Users;
