@@ -63,8 +63,7 @@ class Server {
             `${api().version}/auth/token`,
             `${api().version}/auth/forgot`,
             `${api().version}/auth/reset`,
-            `${api().version}/auth/validate`,
-            `${api().version}/users/test`
+            `${api().version}/auth/validate`
           ]
         })
       );
@@ -124,6 +123,7 @@ class Server {
       const connection = mongoose.connection;
       connection.on('error', () => {
         log.error(`Connection error to the database ${db().name}`);
+        reject();
       });
 
       connection.once('open', () => {

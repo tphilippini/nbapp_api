@@ -11,6 +11,8 @@ import Teams from '@/api/teams/team.model';
 import Players from '@/api/players/player.model';
 import YoutubeVideos from '@/api/videos/youtube.model';
 
+const limitHours = 13;
+
 async function main(connection, dateFormatted) {
   return new Promise(async (resolve, reject) => {
     // YOUTUBE VIDEOS UPDATE
@@ -32,7 +34,7 @@ function matchNotFresh(endTimeUTC) {
   let duration = moment.duration(now.diff(end));
   let hours = duration.asHours();
   // log.default(`Time since match ended: ${hours}`);
-  return hours > 20;
+  return hours > limitHours;
 }
 
 async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
@@ -52,7 +54,7 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
         if (hTeam && vTeam) {
           if (match.statusNum === 3 && matchNotFresh(match.endTimeUTC)) {
             log.warning(
-              'Match is finished and 13+ hours since ended, dont search for videos'
+              `Match is finished and ${limitHours}+ hours since ended, dont search for videos`
             );
           } else if (
             match.statusNum === 3 &&
@@ -60,7 +62,7 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
           ) {
             log.default(hTeam.teamName, vTeam.teamName);
             log.default(
-              'Ready to look for videos, match is over but < 13 hours since it ended'
+              `Ready to look for videos, match is over but < ${limitHours} hours since it ended`
             );
 
             const videos = await videoFromChannel(
@@ -115,9 +117,8 @@ async function saveVideosToDB(videos, matchRecordId) {
       if (exists.length === 1) {
         log.info(`Video ${video.id.videoId} exists already, skip`);
       } else {
-        log.info(
-          `Video doesn't exist, attempting to save video: ${video.snippet.title}`
-        );
+        log.info(`${video.snippet.title}`);
+        log.info(`Video doesn't exist, attempting to save video`);
         let { type, playerId, duelIds } = await determineVideoTypeFromTitle(
           video.snippet.title
         );
@@ -146,14 +147,29 @@ async function saveVideosToDB(videos, matchRecordId) {
         videoToSave.thumbnailUrlMedium = video.snippet.thumbnails.medium.url;
         videoToSave.thumbnailUrlSmall = video.snippet.thumbnails.default.url;
 
-        videoToSave.match = await Matches.findOne({
+        let existingMatch = await Matches.findOne({
           matchId: matchRecordId
         });
+        videoToSave.match = existingMatch;
 
         try {
           await videoToSave.save().then(m => {
             log.success(`Youtube video saved for match ${matchRecordId}`);
+            // Update videos list in match
+            existingMatch.videos.push(m._id);
           });
+
+          await existingMatch
+            .save()
+            .then(e => {
+              log.success('Match record update complete...');
+              log.info('----------------------------------');
+            })
+            .catch(error => {
+              log.info('Match doesnt exist, didnt start probably...');
+              log.error(error);
+              log.info('----------------------------------');
+            });
         } catch (error) {
           log.error('Youtube video doesnt save, see error...');
           log.error(error);
@@ -191,7 +207,7 @@ async function determineVideoTypeFromTitle(title) {
     type = 'highlights';
     if (titleLowerCase.includes('pts') || titleLowerCase.includes('points')) {
       // if it's a player highlight, try to figure out which player it is.
-      let player = await Players.find({ where: { name: name } });
+      let player = await Players.find({ name: name });
 
       if (player.length === 1) {
         type = `player highlights ${name}`;
@@ -254,8 +270,8 @@ async function determineVideoTypeFromTitle(title) {
         title.split('vs')[1].split(' ')[2];
     }
 
-    let player1 = await Players.find({ where: { name: player1Name } });
-    let player2 = await Players.find({ where: { name: player2Name } });
+    let player1 = await Players.find({ name: player1Name });
+    let player2 = await Players.find({ name: player2Name });
 
     // if both players can be identified, send back duelIds for each so they are saved in ManyToMany relationship.
     if (player1.length === 1 && player2.length === 1) {
@@ -276,8 +292,8 @@ async function determineVideoTypeFromTitle(title) {
       ' ' +
       title.split('&')[1].split(' ')[2];
 
-    let player1 = await Players.find({ where: { name: player1Name } });
-    let player2 = await Players.find({ where: { name: player2Name } });
+    let player1 = await Players.find({ name: player1Name });
+    let player2 = await Players.find({ name: player2Name });
 
     // if both players can be identified, send back duelIds for each so they are saved in ManyToMany relationship.
     if (player1.length === 1 && player2.length === 1) {

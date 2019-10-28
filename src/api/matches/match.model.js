@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
+
+import Teams from '@/api/teams/team.model';
+import MatchesStats from '@/api/matches-stats/match-stats.model';
+import Players from '@/api/players/player.model';
+import YoutubeVideos from '@/api/videos/youtube.model';
 
 let MatchesSchema = new mongoose.Schema(
   {
@@ -17,6 +21,8 @@ let MatchesSchema = new mongoose.Schema(
 
     endTimeUTC: Date,
 
+    hTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams' },
+
     hTeamId: String,
 
     hTeamWins: String,
@@ -26,6 +32,8 @@ let MatchesSchema = new mongoose.Schema(
     hTeamTriCode: String,
 
     hTeamScore: String,
+
+    vTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams' },
 
     vTeamId: String,
 
@@ -53,7 +61,21 @@ let MatchesSchema = new mongoose.Schema(
 
     hTeamQScore: Object,
 
-    vTeamQScore: Object
+    vTeamQScore: Object,
+
+    stats: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MatchesStats'
+      }
+    ],
+
+    videos: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'YoutubeVideos'
+      }
+    ]
   },
   {
     toJSON: { virtuals: true }
@@ -70,16 +92,23 @@ MatchesSchema.virtual('vTeamRecordFormatted').get(function() {
 
 MatchesSchema.statics.findMatchesByStartDate = function(date) {
   return new Promise((resolve, reject) => {
-    this.find({ startDateEastern: date }, (error, docs) => {
+    this.find({ startDateEastern: date }, (error, matches) => {
       if (error) {
+        console.log(error);
         return reject(error);
       }
-      resolve(docs);
+      resolve(matches);
     })
       .select('-__v')
       .select('-_id')
-      // use leanQueries for extra data manipulation for frontend
-      .lean({ virtuals: true });
+      .populate({
+        path: 'stats',
+        select: '-_id -__v',
+        populate: { path: 'player', select: '-_id -__v' }
+      })
+      .populate('videos hTeam vTeam', '-_id -__v');
+    // use leanQueries for extra data manipulation for frontend
+    // .lean({ virtuals: true })
   });
 };
 
@@ -87,8 +116,6 @@ MatchesSchema.pre('remove', next => {
   this.model('MatchesStats').deleteMany({ match: this._id }, next);
   this.model('YoutubeVideos').deleteMany({ match: this._id }, next);
 });
-
-MatchesSchema.plugin(mongooseLeanVirtuals);
 
 const Matches = mongoose.model('Matches', MatchesSchema, 'Matches');
 export default Matches;

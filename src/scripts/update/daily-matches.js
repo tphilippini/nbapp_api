@@ -8,6 +8,7 @@ import { db } from '@/config/config';
 
 import Matches from '@/api/matches/match.model';
 import Players from '@/api/players/player.model';
+import Teams from '@/api/teams/team.model';
 import MatchesStats from '@/api/matches-stats/match-stats.model';
 
 import { findTodayMatches } from '@/scripts/api/nba';
@@ -19,6 +20,9 @@ async function main(connection, dateFormatted) {
     const todaysMatches = await findTodayMatches(dateFormatted);
     log.info(`Todays matches found : ${todaysMatches.length}`);
     if (todaysMatches.length > 0) {
+      log.info('Finding teams...');
+      const teams = await Teams.find({ isNBAFranchise: true });
+
       await forEachSeries(todaysMatches, async game => {
         const existingMatch = await Matches.findOne({
           matchId: game.gameId
@@ -82,6 +86,10 @@ async function main(connection, dateFormatted) {
             `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
           );
           log.info('Match doesnt exist, creating new record now...');
+
+          let hTeam = teams.find(t => t.teamTriCode === game.hTeam.triCode);
+          let vTeam = teams.find(t => t.teamTriCode === game.vTeam.triCode);
+
           const match = {
             matchId: game.gameId,
             startDateEastern: game.startDateEastern,
@@ -89,11 +97,13 @@ async function main(connection, dateFormatted) {
             startTimeUTC: new Date(game.startTimeUTC),
             endTimeUTC: game.endTimeUTC ? game.endTimeUTC : new Date(),
             isGameActivated: game.isGameActivated,
+            hTeam: hTeam._id,
             hTeamId: game.hTeam.teamId,
             hTeamWins: game.hTeam.win,
             hTeamLosses: game.hTeam.loss,
             hTeamTriCode: game.hTeam.triCode,
             hTeamScore: game.hTeam.score,
+            vTeam: vTeam._id,
             vTeamId: game.vTeam.teamId,
             vTeamWins: game.vTeam.win,
             vTeamLosses: game.vTeam.loss,
@@ -218,6 +228,8 @@ async function saveStats(match, stats) {
             log.success(
               `MatchStat saved for: ${player.name} matchId: ${match.matchId}`
             );
+            // Update stats list in match for populate
+            match.stats.push(m._id);
           });
         } catch (error) {
           log.error('MatchStat doesnt save, see error...');
