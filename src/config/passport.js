@@ -11,24 +11,23 @@ passport.use(
       usernameField: 'email',
       passwordField: 'password'
     },
-    (email, password, done) => {
-      log.info('Hi! Passport local verification...');
-      Users.findOneByEmail(email)
-        .then(user => {
-          if (user) {
-            bcrypt.compare(password, user.password, (err, isMatch) => {
-              if (err) done('invalid_credentials');
+    async (email, password, done) => {
+      try {
+        log.info('Hi! Passport local verification...');
+        const user = await Users.findOneByEmail(email);
 
-              if (isMatch) {
-                done(null, user);
-              } else done('invalid_credentials');
-            });
-          } else done('invalid_credentials');
-        })
-        .catch(err => {
-          log.error(err);
-          done('invalid_credentials');
+        if (!user) done('invalid_credentials', false);
+
+        bcrypt.compare(password, user.password, (err, isMatch) => {
+          if (err) done('invalid_credentials', false);
+
+          if (isMatch) {
+            done(null, user);
+          } else done('invalid_credentials', false);
         });
+      } catch (err) {
+        done('invalid_credentials', false);
+      }
     }
   )
 );
