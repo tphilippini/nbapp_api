@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 
 import { api, db } from '@/config/config';
 // import conn from '@/config/database';
-// import passport from '@/config/passport';
+import passport from '@/config/passport';
 
 import { version } from '@@/package.json';
 
@@ -50,7 +50,8 @@ class Server {
         })
       );
 
-      // app.use(passport.initialize());
+      // Password auth
+      app.use(passport.initialize());
 
       // Auth middleware
       app.use(

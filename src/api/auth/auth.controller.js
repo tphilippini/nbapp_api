@@ -10,7 +10,7 @@ import Users from '@/api/users/user.model';
 import Devices from '@/api/devices/device.model';
 
 import { app, api } from '@/config/config';
-// import passport from '@/config/passport';
+import passport from '@/config/passport';
 
 import { isSha1 } from '@/helpers/validator';
 import {
@@ -27,36 +27,6 @@ import mailer from '@/helpers/mailer';
 const authController = {};
 
 authController.post = (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-
-  // passport.authenticate(
-  //   'local',
-  //   { session: false },
-  //   (err, passportUser, info) => {
-  //     console.log('------------------');
-  //     console.log(err);
-  //     console.log(passportUser);
-  //     console.log(info);
-
-  //     /*
-  //     if (err) {
-  //       return next(err);
-  //     }
-
-  //     if (passportUser) {
-  //       const user = passportUser;
-  //       user.token = passportUser.generateJWT();
-
-  //       return res.json({ user: user.toAuthJSON() });
-  //     }
-
-  //     return status(400).info;
-  //     */
-  //     return res.json({ kikou: 'lol' });
-  //   }
-  // )(req, res);
-
   // TODO: deal with it when mobile is coming (by taking device name as default)
   const deviceName = 'Ordinateur principal';
 
@@ -90,30 +60,16 @@ authController.post = (req, res) => {
           }
 
           if (errors.length === 0) {
-            log.info('Hi! Generating tokens...');
+            passport.authenticate('local', { session: false }, (err, user) => {
+              if (err) {
+                log.error('Hi! Password validation on error...');
+                errors.push(err);
+                return checkEvent.emit('error', errors);
+              }
 
-            Users.findOneByEmail(email)
-              .then(result => {
-                if (result) {
-                  bcrypt.compare(password, result.password, (err, isMatch) => {
-                    if (err) throw err;
-
-                    if (isMatch) {
-                      checkEvent.emit('success_password_grant', result);
-                    } else {
-                      errors.push('invalid_credentials');
-                      checkEvent.emit('error', errors);
-                    }
-                  });
-                } else {
-                  errors.push('invalid_credentials');
-                  checkEvent.emit('error', errors);
-                }
-              })
-              .catch(() => {
-                errors.push('invalid_credentials');
-                checkEvent.emit('error', errors);
-              });
+              log.info('Hi! Generating tokens...');
+              return checkEvent.emit('success_password_grant', user);
+            })(req, res);
           }
         }
       } else if (grantType === 'refresh_token') {
@@ -130,19 +86,19 @@ authController.post = (req, res) => {
           }
 
           if (errors.length === 0) {
-            /*Devices.doesTheRefreshTokenValid(
-              [clientId, refreshToken],
-              result => {
-                if (result.length > 0) {
-                  checkEvent.emit('success_refresh_token_grant', result[0]);
-                } else {
-                  errors.push('invalid_client');
-                  checkEvent.emit('error', errors);
-                }
-              }
-            );*/
+            // Devices.doesTheRefreshTokenValid(
+            //   [clientId, refreshToken],
+            //   result => {
+            //     if (result.length > 0) {
+            //       checkEvent.emit('success_refresh_token_grant', result[0]);
+            //     } else {
+            //       errors.push('invalid_client');
+            //       checkEvent.emit('error', errors);
+            //     }
+            //   }
+            // );
             errors.push('invalid_client');
-            checkEvent.emit('error', errors);
+            return checkEvent.emit('error', errors);
           }
         }
       } else {
@@ -151,7 +107,7 @@ authController.post = (req, res) => {
     }
 
     if (errors.length > 0) {
-      checkEvent.emit('error', errors);
+      return checkEvent.emit('error', errors);
     }
   };
 
