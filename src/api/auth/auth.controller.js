@@ -128,7 +128,7 @@ authController.post = (req, res) => {
       deviceId,
       result.uuid,
       result.alias,
-      result.email,
+      result.local.email,
       userType
     );
 
@@ -158,7 +158,7 @@ authController.post = (req, res) => {
         refresh_token: refreshToken,
         client_id: deviceId,
         uuid: result.uuid,
-        email: result.email,
+        email: result.local.email,
         alias: result.alias,
         firstName: result.firstName,
         lastName: result.lastName
@@ -190,6 +190,92 @@ authController.post = (req, res) => {
       }
     );
     */
+  });
+
+  checking();
+};
+
+authController.google = (req, res) => {
+  const deviceName = 'Ordinateur principal';
+
+  const agent = ua.parse(req.headers['user-agent']);
+  const uaName = agent.toString();
+  const userType = 'user';
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    passport.authenticate('google', { session: false }, (err, user) => {
+      if (err) {
+        log.error('Hi! Password google validation on error...');
+        errors.push(err);
+        return checkEvent.emit('error', errors);
+      }
+
+      log.info('Hi! Generating tokens...');
+      return checkEvent.emit('success_google_grant', user);
+    })(req, res);
+
+    if (errors.length > 0) {
+      return checkEvent.emit('error', errors);
+    }
+  };
+
+  checkEvent.on('error', err => {
+    let status = 400;
+
+    if (err[0] === 'invalid_credentials') {
+      status = 401;
+    }
+
+    response.error(res, status, err);
+  });
+
+  checkEvent.on('success_google_grant', result => {
+    const deviceId = uuid.v4();
+    const refreshToken = generateRefreshToken(deviceId);
+    const accessToken = generateAccessToken(
+      deviceId,
+      result.uuid,
+      result.alias,
+      result.google.email,
+      userType
+    );
+
+    let device = new Devices({
+      uuid: deviceId,
+      userId: result._id,
+      userType: userType,
+      refreshToken: refreshToken,
+      name: deviceName,
+      ua: uaName
+    });
+
+    device.save(err => {
+      if (err) {
+        let errors = [];
+        errors.push(err);
+        response.error(res, 500, errors);
+      }
+
+      // TODO Use "let" when other model is available
+      const code = 'user_authenticated';
+
+      response.success(res, 200, code, {
+        access_token: accessToken,
+        token_type: 'bearer',
+        expires_in: api().access_token.exp,
+        refresh_token: refreshToken,
+        client_id: deviceId,
+        uuid: result.uuid,
+        email: result.google.email,
+        alias: result.alias,
+        firstName: result.firstName,
+        lastName: result.lastName
+      });
+    });
   });
 
   checking();

@@ -45,7 +45,7 @@ userController.post = (req, res) => {
       }
 
       if (errors.length === 0) {
-        Users.doesThisExist({ email })
+        Users.doesThisExist({ email, method: 'local' })
           .then(result => {
             if (result) {
               errors.push('email_address_already_taken');
@@ -93,9 +93,10 @@ userController.post = (req, res) => {
      */
     bcrypt.hash(password, 12, (err, hash) => {
       let user = new Users({
+        method: 'local',
         alias,
-        email,
-        password: hash,
+        'local.email': email,
+        'local.password': hash,
         uuid: uuid.v4()
       });
 
@@ -173,10 +174,9 @@ userController.patch = (req, res) => {
         const firstName = req.body.firstName;
         const lastName = req.body.lastName;
         const alias = req.body.alias;
-        const email = req.body.email;
         const uuid = req.params.uuid;
 
-        if (!lastName || !firstName || !alias || !email || !uuid || !userType) {
+        if (!lastName || !firstName || !alias || !uuid || !userType) {
           errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
@@ -185,9 +185,6 @@ userController.patch = (req, res) => {
           if (!isUUID(uuid)) {
             errors.push('invalid_client');
           }
-          if (!isEmail(email)) {
-            errors.push('invalid_email_address');
-          }
           if (alias.length < 4) {
             errors.push('alias_too_short');
           }
@@ -195,7 +192,7 @@ userController.patch = (req, res) => {
           if (errors.length === 0) {
             Users.findOneByUUID(uuid)
               .then(result => {
-                if (result && result.uuid == uuid && result.email == email) {
+                if (result && result.uuid == uuid) {
                   Users.doesThisExist({ alias, uuid: { $ne: uuid } })
                     .then(exists => {
                       if (exists) {
@@ -262,21 +259,25 @@ userController.patch = (req, res) => {
               .then(result => {
                 if (result && result.uuid == uuid) {
                   log.info('Hi! Comparing password...');
-                  bcrypt.compare(password, result.password, (err, isMatch) => {
-                    if (err) throw err;
+                  bcrypt.compare(
+                    password,
+                    result.local.password,
+                    (err, isMatch) => {
+                      if (err) throw err;
 
-                    if (isMatch) {
-                      log.info('Hi! Updating new password...');
-                      checkEvent.emit(
-                        'success_update_password_grant',
-                        result,
-                        newPassword
-                      );
-                    } else {
-                      errors.push('invalid_credentials');
-                      checkEvent.emit('error', errors);
+                      if (isMatch) {
+                        log.info('Hi! Updating new password...');
+                        checkEvent.emit(
+                          'success_update_password_grant',
+                          result,
+                          newPassword
+                        );
+                      } else {
+                        errors.push('invalid_credentials');
+                        checkEvent.emit('error', errors);
+                      }
                     }
-                  });
+                  );
                 } else {
                   errors.push('invalid_credentials');
                   checkEvent.emit('error', errors);
@@ -318,7 +319,7 @@ userController.patch = (req, res) => {
 
       response.success(res, 200, 'user_updated', {
         uuid: u.uuid,
-        email: u.email,
+        email: u.local.email,
         alias: u.alias,
         firstName: u.firstName,
         lastName: u.lastName
@@ -328,7 +329,7 @@ userController.patch = (req, res) => {
 
   checkEvent.on('success_update_password_grant', (result, newPassword) => {
     bcrypt.hash(newPassword, 12, (err, hash) => {
-      result.password = hash;
+      result.local.password = hash;
 
       let user = new Users(result);
       user.save((err, u) => {
@@ -340,7 +341,7 @@ userController.patch = (req, res) => {
 
         response.success(res, 200, 'user_updated', {
           uuid: u.uuid,
-          email: u.email,
+          email: u.local.email,
           alias: u.alias,
           firstName: u.firstName,
           lastName: u.lastName
@@ -409,7 +410,8 @@ userController.getCurrent = (req, res) => {
       if (errors.length === 0) {
         Users.findOneByEmail(email)
           .then(result => {
-            if (result && result.email == email) {
+            if (result && result.local.email == email) {
+              console.log();
               checkEvent.emit('success_current_user', result);
             } else {
               errors.push('invalid_credentials');
@@ -438,7 +440,7 @@ userController.getCurrent = (req, res) => {
   checkEvent.on('success_current_user', result => {
     response.success(res, 200, 'user_confirmed', {
       uuid: result.uuid,
-      email: result.email,
+      email: result.local.email,
       alias: result.alias,
       firstName: result.firstName,
       lastName: result.lastName

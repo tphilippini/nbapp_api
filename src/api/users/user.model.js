@@ -14,22 +14,56 @@ const UsersSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       required: [true, "can't be blank"],
-      match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
+      match: [/^[-a-zA-Z0-9]+$/, 'is invalid'],
       unique: true
     },
 
-    email: {
+    photo: String,
+
+    method: {
       type: String,
-      lowercase: true,
-      required: [true, "can't be blank"],
-      match: [/\S+@\S+\.\S+/, 'is invalid'],
-      unique: true,
-      index: true
+      enum: ['local', 'google', 'facebook'],
+      required: true
     },
 
-    password: { type: String, required: true },
+    local: {
+      email: {
+        type: String,
+        lowercase: true,
+        match: [/\S+@\S+\.\S+/, 'is invalid']
+      },
 
-    confirmed: { type: Boolean, default: false }
+      password: {
+        type: String
+      },
+
+      confirmed: {
+        type: Boolean,
+        default: false
+      }
+    },
+
+    google: {
+      id: {
+        type: String
+      },
+      email: {
+        type: String,
+        lowercase: true,
+        match: [/\S+@\S+\.\S+/, 'is invalid']
+      }
+    },
+
+    facebook: {
+      id: {
+        type: String
+      },
+      email: {
+        type: String,
+        lowercase: true,
+        match: [/\S+@\S+\.\S+/, 'is invalid']
+      }
+    }
   },
   { timestamps: true }
 );
@@ -62,7 +96,7 @@ UsersSchema.statics.findOneByUUID = function(data) {
 
 UsersSchema.statics.findOneByEmail = function(data) {
   return new Promise((resolve, reject) => {
-    this.findOne({ email: data }, (error, docs) => {
+    this.findOne({ 'local.email': data }, (error, docs) => {
       if (error) {
         return reject(error);
       }

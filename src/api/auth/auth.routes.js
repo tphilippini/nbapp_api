@@ -1,14 +1,15 @@
-"use strict";
+'use strict';
 
-import { Router } from "express";
+import { Router } from 'express';
 
-import authController from "@/api/auth/auth.controller";
+import authController from '@/api/auth/auth.controller';
 
 const authRouter = Router();
 
-authRouter.post("/token", authController.post);
-authRouter.post("/forgot", authController.forgot);
-authRouter.post("/reset", authController.reset);
-authRouter.post("/validate", authController.validate);
+authRouter.post('/token', authController.post);
+authRouter.post('/google/token', authController.google);
+authRouter.post('/forgot', authController.forgot);
+authRouter.post('/reset', authController.reset);
+authRouter.post('/validate', authController.validate);
 
 export default authRouter;

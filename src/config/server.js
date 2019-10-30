@@ -62,6 +62,8 @@ class Server {
             { url: `${api().version}/users`, methods: ['OPTIONS', 'POST'] },
             `${api().version}/auth`,
             `${api().version}/auth/token`,
+            `${api().version}/auth/google/token`,
+            `${api().version}/auth/google/callback`,
             `${api().version}/auth/forgot`,
             `${api().version}/auth/reset`,
             `${api().version}/auth/validate`
