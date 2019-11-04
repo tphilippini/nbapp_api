@@ -410,8 +410,12 @@ userController.getCurrent = (req, res) => {
       if (errors.length === 0) {
         Users.findOneByEmail(email)
           .then(result => {
-            if (result && result.local.email == email) {
-              console.log();
+            if (
+              result &&
+              (result.local.email == email ||
+                result.facebook.email == email ||
+                result.google.email == email)
+            ) {
               checkEvent.emit('success_current_user', result);
             } else {
               errors.push('invalid_credentials');
@@ -440,7 +444,7 @@ userController.getCurrent = (req, res) => {
   checkEvent.on('success_current_user', result => {
     response.success(res, 200, 'user_confirmed', {
       uuid: result.uuid,
-      email: result.local.email,
+      email: result.local.email || result.facebook.email || result.google.email,
       alias: result.alias,
       firstName: result.firstName,
       lastName: result.lastName

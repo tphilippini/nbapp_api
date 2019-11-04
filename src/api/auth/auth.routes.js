@@ -8,6 +8,7 @@ const authRouter = Router();
 
 authRouter.post('/token', authController.post);
 authRouter.post('/google/token', authController.google);
+authRouter.post('/facebook/token', authController.facebook);
 authRouter.post('/forgot', authController.forgot);
 authRouter.post('/reset', authController.reset);
 authRouter.post('/validate', authController.validate);

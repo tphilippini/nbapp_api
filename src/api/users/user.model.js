@@ -96,12 +96,21 @@ UsersSchema.statics.findOneByUUID = function(data) {
 
 UsersSchema.statics.findOneByEmail = function(data) {
   return new Promise((resolve, reject) => {
-    this.findOne({ 'local.email': data }, (error, docs) => {
-      if (error) {
-        return reject(error);
+    this.findOne(
+      {
+        $or: [
+          { 'local.email': data },
+          { 'google.email': data },
+          { 'facebook.email': data }
+        ]
+      },
+      (error, docs) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(docs);
       }
-      resolve(docs);
-    });
+    );
   });
 };
 

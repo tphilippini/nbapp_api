@@ -1,5 +1,23 @@
 'use strict';
 
+const randomIntFromInterval = (min, max) => {
+  // min and max included
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+const setDefaultAlias = str => {
+  const randomInt = randomIntFromInterval(1, 100000);
+  let alias = '';
+  if (str) {
+    alias = str
+      .match(/\b(\w)/g)
+      .join('')
+      .toLowerCase();
+  }
+
+  return alias.concat(randomInt);
+};
+
 const slug = str => {
   str = String(str).toString();
   str = str.replace(/^\s+|\s+$/g, ''); // trim
@@ -589,4 +607,4 @@ const slug = str => {
     .replace(/-+$/, '');
 };
 
-export { slug };
+export { slug, randomIntFromInterval, setDefaultAlias };
