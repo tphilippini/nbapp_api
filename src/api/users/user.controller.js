@@ -14,6 +14,7 @@ import { generateAccessToken, generateRefreshToken } from '@/helpers/token';
 import response from '@/helpers/response';
 import log from '@/helpers/log';
 import os from '@/helpers/os';
+import passport from '@/config/passport';
 
 const userController = {};
 
@@ -45,11 +46,24 @@ userController.post = (req, res) => {
       }
 
       if (errors.length === 0) {
-        Users.doesThisExist({ email, method: 'local' })
+        console.log(email);
+        Users.findOneByEmail(email)
           .then(result => {
             if (result) {
-              errors.push('email_address_already_taken');
-              checkEvent.emit('error', errors);
+              if (result.local.email == email) {
+                errors.push('email_address_already_taken');
+                checkEvent.emit('error', errors);
+              } else {
+                log.info(
+                  'Hi! Existing social user, merge with this account...'
+                );
+
+                result.local.email = email;
+                result.alias = alias;
+                result.methods.push('local');
+
+                checkEvent.emit('success', result);
+              }
             } else {
               Users.doesThisExist({ alias })
                 .then(result => {
@@ -57,7 +71,14 @@ userController.post = (req, res) => {
                     errors.push('alias_already_taken');
                     checkEvent.emit('error', errors);
                   } else {
-                    checkEvent.emit('success');
+                    let user = new Users({
+                      methods: ['local'],
+                      alias,
+                      'local.email': email,
+                      uuid: uuid.v4()
+                    });
+
+                    checkEvent.emit('success', user);
                   }
                 })
                 .catch(() => {
@@ -67,7 +88,7 @@ userController.post = (req, res) => {
             }
           })
           .catch(() => {
-            errors.push('email_address_already_taken');
+            errors.push('missing_params');
             checkEvent.emit('error', errors);
           });
       }
@@ -84,7 +105,7 @@ userController.post = (req, res) => {
 
   checking();
 
-  checkEvent.on('success', () => {
+  checkEvent.on('success', user => {
     /**
      * Generate password with 2^12 (4096) iterations for the algo.
      * Safety is priority here, performance on the side in this case
@@ -92,13 +113,7 @@ userController.post = (req, res) => {
      * It will take more time during matching process, then more time to reverse it
      */
     bcrypt.hash(password, 12, (err, hash) => {
-      let user = new Users({
-        method: 'local',
-        alias,
-        'local.email': email,
-        'local.password': hash,
-        uuid: uuid.v4()
-      });
+      user.local.password = hash;
 
       const deviceId = uuid.v4();
       const refreshToken = generateRefreshToken(deviceId);
@@ -306,8 +321,6 @@ userController.patch = (req, res) => {
     response.error(res, status, err);
   });
 
-  checking();
-
   checkEvent.on('success_update_grant', result => {
     let user = new Users(result);
     user.save((err, u) => {
@@ -319,10 +332,11 @@ userController.patch = (req, res) => {
 
       response.success(res, 200, 'user_updated', {
         uuid: u.uuid,
-        email: u.local.email,
+        email: u.local.email || u.facebook.email || u.google.email,
         alias: u.alias,
         firstName: u.firstName,
-        lastName: u.lastName
+        lastName: u.lastName,
+        methods: u.methods
       });
     });
   });
@@ -341,14 +355,17 @@ userController.patch = (req, res) => {
 
         response.success(res, 200, 'user_updated', {
           uuid: u.uuid,
-          email: u.local.email,
+          email: u.local.email || u.facebook.email || u.google.email,
           alias: u.alias,
           firstName: u.firstName,
-          lastName: u.lastName
+          lastName: u.lastName,
+          methods: u.methods
         });
       });
     });
   });
+
+  checking();
 };
 
 // userController.getAll = (req, res) => {
@@ -447,9 +464,182 @@ userController.getCurrent = (req, res) => {
       email: result.local.email || result.facebook.email || result.google.email,
       alias: result.alias,
       firstName: result.firstName,
-      lastName: result.lastName
+      lastName: result.lastName,
+      methods: result.methods
     });
   });
+};
+
+userController.linkAccount = (req, res) => {
+  log.info('Hi! Linking user to social account...');
+
+  const grantType = req.body.grant_type;
+  const userType = req.body.user_type;
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    if (!grantType) {
+      errors.push('missing_params');
+    } else {
+      const allowedUserTypes = ['user'];
+
+      if (grantType === 'link') {
+        log.info('Hi! Linking...');
+
+        const method = req.params.method;
+        const token = req.body.access_token;
+
+        if (!token || !userType) {
+          errors.push('missing_params');
+        } else {
+          if (allowedUserTypes.indexOf(userType) === -1) {
+            errors.push('invalid_user_type');
+          }
+
+          if (!['google', 'facebook'].includes(method)) {
+            errors.push('invalid_method');
+          }
+
+          if (errors.length === 0) {
+            passport.authorize(method, { session: false }, (err, user) => {
+              if (err) {
+                log.error(`Hi! Linking ${method} account on error...`);
+                log.error(err);
+                errors.push('invalid_credentials');
+                return checkEvent.emit('error', errors);
+              }
+
+              log.info(`Hi! Linking ${method} account...`);
+              return checkEvent.emit(`success_social_link`, user);
+            })(req, res);
+          }
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      return checkEvent.emit('error', errors);
+    }
+  };
+
+  checkEvent.on('error', err => {
+    let status = 400;
+
+    if (err[0] === 'invalid_credentials') {
+      status = 401;
+    }
+
+    response.error(res, status, err);
+  });
+
+  checkEvent.on('success_social_link', result => {
+    response.success(res, 200, 'user_updated', {
+      uuid: result.uuid,
+      email: result.local.email,
+      alias: result.alias,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      methods: result.methods
+    });
+  });
+
+  checking();
+};
+
+userController.unlinkAccount = (req, res) => {
+  log.info('Hi! Unlinking user to social account...');
+
+  const grantType = req.body.grant_type;
+  const userType = req.body.user_type;
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    if (!grantType) {
+      errors.push('missing_params');
+    } else {
+      const allowedUserTypes = ['user'];
+
+      if (grantType === 'unlink') {
+        log.info('Hi! Unlinking...');
+
+        const method = req.params.method;
+        const email = req.user.email;
+
+        if (!userType) {
+          errors.push('missing_params');
+        } else {
+          if (allowedUserTypes.indexOf(userType) === -1) {
+            errors.push('invalid_user_type');
+          }
+
+          if (!['google', 'facebook'].includes(method)) {
+            errors.push('invalid_method');
+          }
+
+          if (errors.length === 0) {
+            Users.findOneByEmail(email)
+              .then(user => {
+                if (user) {
+                  const position = user.methods.indexOf(method);
+                  if (position >= 0) user.methods.splice(position, 1);
+                  if (user[method]) user[method] = undefined;
+
+                  checkEvent.emit('success_social_unlink', user);
+                } else {
+                  errors.push('invalid_credentials');
+                  checkEvent.emit('error', errors);
+                }
+              })
+              .catch(() => {
+                errors.push('invalid_credentials');
+                checkEvent.emit('error', errors);
+              });
+          }
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      return checkEvent.emit('error', errors);
+    }
+  };
+
+  checkEvent.on('error', err => {
+    let status = 400;
+
+    if (err[0] === 'invalid_credentials') {
+      status = 401;
+    }
+
+    response.error(res, status, err);
+  });
+
+  checkEvent.on('success_social_unlink', result => {
+    result.save((err, u) => {
+      if (err) {
+        let errors = [];
+        errors.push(err);
+        response.error(res, 500, errors);
+      }
+
+      response.success(res, 200, 'user_updated', {
+        uuid: u.uuid,
+        email: u.local.email || u.facebook.email || u.google.email,
+        alias: u.alias,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        methods: u.methods
+      });
+    });
+  });
+
+  checking();
 };
 
 export default userController;

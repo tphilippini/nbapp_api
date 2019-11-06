@@ -20,9 +20,8 @@ const UsersSchema = new mongoose.Schema(
 
     photo: String,
 
-    method: {
-      type: String,
-      enum: ['local', 'google', 'facebook'],
+    methods: {
+      type: [String],
       required: true
     },
 
@@ -104,11 +103,9 @@ UsersSchema.statics.findOneByEmail = function(data) {
           { 'facebook.email': data }
         ]
       },
-      (error, docs) => {
-        if (error) {
-          return reject(error);
-        }
-        resolve(docs);
+      (error, user) => {
+        if (error) return reject(error);
+        resolve(user);
       }
     );
   });
@@ -116,11 +113,9 @@ UsersSchema.statics.findOneByEmail = function(data) {
 
 UsersSchema.statics.getUsers = function() {
   return new Promise((resolve, reject) => {
-    this.find((error, docs) => {
-      if (error) {
-        return reject(error);
-      }
-      resolve(docs);
+    this.find((error, users) => {
+      if (error) return reject(error);
+      resolve(users);
     });
   });
 };

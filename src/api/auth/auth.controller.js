@@ -161,7 +161,8 @@ authController.post = (req, res) => {
         email: result.local.email,
         alias: result.alias,
         firstName: result.firstName,
-        lastName: result.lastName
+        lastName: result.lastName,
+        methods: result.methods
       });
     });
   });
@@ -227,21 +228,17 @@ authController.google = (req, res) => {
           }
 
           if (errors.length === 0) {
-            passport.authenticate(
-              'google-token',
-              { session: false },
-              (err, user) => {
-                if (err) {
-                  log.error('Hi! Password google validation on error...');
-                  log.error(err);
-                  errors.push('invalid_credentials');
-                  return checkEvent.emit('error', errors);
-                }
-
-                log.info('Hi! Generating tokens...');
-                return checkEvent.emit('success_google_grant', user);
+            passport.authenticate('google', { session: false }, (err, user) => {
+              if (err) {
+                log.error('Hi! Password google validation on error...');
+                log.error(err);
+                errors.push('invalid_credentials');
+                return checkEvent.emit('error', errors);
               }
-            )(req, res);
+
+              log.info('Hi! Generating tokens...');
+              return checkEvent.emit('success_google_grant', user);
+            })(req, res);
           }
         }
       }
@@ -263,8 +260,6 @@ authController.google = (req, res) => {
   });
 
   checkEvent.on('success_google_grant', result => {
-    console.log('RESULT', result);
-
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(

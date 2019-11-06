@@ -125,6 +125,8 @@ response.error = (res, status, errors = []) => {
         });
       if (error === 'invalid_client')
         tab.push({ message: 'Client invalide', code: error });
+      if (error === 'invalid_method')
+        tab.push({ message: 'Méthode invalide', code: error });
       if (error === 'insufficient_rights')
         tab.push({ message: 'Droits insuffisants', code: error });
       if (error === 'the_device_does_not_belong_to_the_user')
