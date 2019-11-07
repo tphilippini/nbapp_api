@@ -162,7 +162,9 @@ authController.post = (req, res) => {
         alias: result.alias,
         firstName: result.firstName,
         lastName: result.lastName,
-        methods: result.methods
+        methods: result.methods,
+        fid: result.facebook.id || undefined,
+        gid: result.google.id || undefined
       });
     });
   });
@@ -299,7 +301,10 @@ authController.google = (req, res) => {
         email: result.google.email,
         alias: result.alias,
         firstName: result.firstName,
-        lastName: result.lastName
+        lastName: result.lastName,
+        methods: result.methods,
+        fid: result.facebook.id || undefined,
+        gid: result.google.id || undefined
       });
     });
   });
@@ -413,7 +418,9 @@ authController.facebook = (req, res) => {
         email: result.facebook.email,
         alias: result.alias,
         firstName: result.firstName,
-        lastName: result.lastName
+        lastName: result.lastName,
+        methods: result.methods,
+        photo: result.photo
       });
     });
   });

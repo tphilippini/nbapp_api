@@ -272,7 +272,7 @@ userController.patch = (req, res) => {
           if (errors.length === 0) {
             Users.findOneByUUID(uuid)
               .then(result => {
-                if (result && result.uuid == uuid) {
+                if (result && result.uuid == uuid && result.local.password) {
                   log.info('Hi! Comparing password...');
                   bcrypt.compare(
                     password,
@@ -336,7 +336,9 @@ userController.patch = (req, res) => {
         alias: u.alias,
         firstName: u.firstName,
         lastName: u.lastName,
-        methods: u.methods
+        methods: u.methods,
+        fid: u.facebook.id || undefined,
+        gid: u.google.id || undefined
       });
     });
   });
@@ -359,7 +361,9 @@ userController.patch = (req, res) => {
           alias: u.alias,
           firstName: u.firstName,
           lastName: u.lastName,
-          methods: u.methods
+          methods: u.methods,
+          fid: u.facebook.id || undefined,
+          gid: u.google.id || undefined
         });
       });
     });
@@ -465,7 +469,9 @@ userController.getCurrent = (req, res) => {
       alias: result.alias,
       firstName: result.firstName,
       lastName: result.lastName,
-      methods: result.methods
+      methods: result.methods,
+      fid: result.facebook.id || undefined,
+      gid: result.google.id || undefined
     });
   });
 };
@@ -542,7 +548,9 @@ userController.linkAccount = (req, res) => {
       alias: result.alias,
       firstName: result.firstName,
       lastName: result.lastName,
-      methods: result.methods
+      methods: result.methods,
+      fid: result.facebook.id || undefined,
+      gid: result.google.id || undefined
     });
   });
 
@@ -634,7 +642,9 @@ userController.unlinkAccount = (req, res) => {
         alias: u.alias,
         firstName: u.firstName,
         lastName: u.lastName,
-        methods: u.methods
+        methods: u.methods,
+        fid: u.facebook.id || undefined,
+        gid: u.google.id || undefined
       });
     });
   });
