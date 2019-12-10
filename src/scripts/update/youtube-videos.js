@@ -1,15 +1,16 @@
-import moment from 'moment';
-import mongoose from 'mongoose';
-import { forEachSeries } from 'p-iteration';
+import moment from "moment";
+import mongoose from "mongoose";
+import { forEachSeries } from "p-iteration";
 
-import log from '@/helpers/log';
-import { db, ytChannel } from '@/config/config';
-import { videoFromChannel } from '@/scripts/api/youtube';
+import log from "@/helpers/log";
+import { slug } from "@/helpers/utils";
+import { db, ytChannel } from "@/config/config";
+import { videoFromChannel } from "@/scripts/api/youtube";
 
-import Matches from '@/api/matches/match.model';
-import Teams from '@/api/teams/team.model';
-import Players from '@/api/players/player.model';
-import YoutubeVideos from '@/api/videos/youtube.model';
+import Matches from "@/api/matches/match.model";
+import Teams from "@/api/teams/team.model";
+import Players from "@/api/players/player.model";
+import YoutubeVideos from "@/api/videos/youtube.model";
 
 const limitHours = 13;
 
@@ -27,7 +28,7 @@ async function main(connection, dateFormatted) {
 
 function matchNotFresh(endTimeUTC) {
   // Average UTC time in US
-  let now = moment().subtract('hours');
+  let now = moment().subtract("hours");
   // server time is UTC +0 hours
   let end = moment(endTimeUTC);
   // Time since game end
@@ -40,7 +41,7 @@ function matchNotFresh(endTimeUTC) {
 async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
   return new Promise(async (resolve, reject) => {
     try {
-      log.info('----------------------------------');
+      log.info("----------------------------------");
       const todaysMatches = await Matches.find({
         startDateEastern: dateFormatted
       });
@@ -60,14 +61,14 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
             match.statusNum === 3 &&
             !matchNotFresh(match.endTimeUTC)
           ) {
-            log.default(hTeam.teamName, vTeam.teamName);
+            log.default(`${hTeam.teamName} vs ${vTeam.teamName}`);
             log.default(
               `Ready to look for videos, match is over but < ${limitHours} hours since it ended`
             );
 
             const videos = await videoFromChannel(
               channelId,
-              `${hTeam.teamName} | ${vTeam.teamName}`,
+              `"${hTeam.teamName}"|"${hTeam.teamShortName}"|"${vTeam.teamName}"|"${vTeam.teamShortName}"`,
               moment(match.startTimeUTCString).toISOString()
             );
             log.success(`Found ${videos.items.length} videos.`);
@@ -75,15 +76,15 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
             if (videos.items.length > 0) {
               await saveVideosToDB(videos.items, match.matchId);
               log.success(`Finished saving videos for match: ${match.matchId}`);
-              log.info('----------------------------------');
+              log.info("----------------------------------");
             }
           } else if (match.statusNum === 2) {
             log.default(hTeam.teamName, vTeam.teamName);
-            log.default('Ready to look for videos, match is active');
+            log.default("Ready to look for videos, match is active");
 
             const videos = await videoFromChannel(
               channelId,
-              `${hTeam.teamName} | ${vTeam.teamName}`,
+              `"${hTeam.teamName}"|"${hTeam.teamShortName}"|"${vTeam.teamName}"|"${vTeam.teamShortName}"`,
               moment(match.startTimeUTCString).toISOString()
             );
             log.success(`Found ${videos.items.length} videos.`);
@@ -91,15 +92,15 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
             if (videos.items.length > 0) {
               await saveVideosToDB(videos.items, match.matchId);
               log.success(`Finished saving videos for match: ${match.matchId}`);
-              log.info('----------------------------------');
+              log.info("----------------------------------");
             }
           } else {
             log.default(
-              'Match is not yet active, dont look for youtube videos'
+              "Match is not yet active, dont look for youtube videos"
             );
           }
         } else {
-          log.default('Team is missing, dont look for youtube videos');
+          log.default("Team is missing, dont look for youtube videos");
         }
       });
 
@@ -126,12 +127,13 @@ async function saveVideosToDB(videos, matchRecordId) {
         const videoToSave = new YoutubeVideos();
 
         if (playerId) {
-          let player1 = await Players.find({ id: playerId });
-          videoToSave.player = player1;
+          let player1 = await Players.findOne({ playerId });
+          videoToSave.players.push(player1._id);
         } else if (duelIds) {
-          let player1 = await Players.find({ id: duelIds[0] });
-          let player2 = await Players.find({ id: duelIds[1] });
-          videoToSave.player = [...player1, ...player2];
+          let player1 = await Players.findOne({ playerId: duelIds[0] });
+          let player2 = await Players.findOne({ playerId: duelIds[1] });
+          videoToSave.players.push(player1._id);
+          videoToSave.players.push(player2._id);
         }
 
         videoToSave.channelTitle = video.snippet.channelTitle;
@@ -162,16 +164,16 @@ async function saveVideosToDB(videos, matchRecordId) {
           await existingMatch
             .save()
             .then(e => {
-              log.success('Match record update complete...');
-              log.info('----------------------------------');
+              log.success("Match record update complete...");
+              log.info("----------------------------------");
             })
             .catch(error => {
-              log.info('Match doesnt exist, didnt start probably...');
+              log.info("Match doesnt exist, didnt start probably...");
               log.error(error);
-              log.info('----------------------------------');
+              log.info("----------------------------------");
             });
         } catch (error) {
-          log.error('Youtube video doesnt save, see error...');
+          log.error("Youtube video doesnt save, see error...");
           log.error(error);
         }
       }
@@ -184,61 +186,61 @@ async function determineVideoTypeFromTitle(title) {
   let type;
   let playerId = undefined;
   let duelIds = undefined;
-  let name = title.split(' ')[0] + ' ' + title.split(' ')[1];
+  let name = title.split(" ")[0] + " " + title.split(" ")[1];
   log.default(`Determine video type for ${name}`);
 
   let titleLowerCase = title.toLowerCase();
-  if (titleLowerCase.includes('interview')) {
+  if (titleLowerCase.includes("interview")) {
     let player = await Players.find({ name: name });
 
     if (player.length === 1) {
       type = `interview ${name}`;
-      playerId = player[0].id;
+      playerId = player[0].playerId;
     } else {
-      type = 'interview unidentified';
+      type = "interview unidentified";
     }
 
-    if (titleLowerCase.includes('postgame')) {
-      type = type + ' postgame';
-    } else if (titleLowerCase.includes('pregame')) {
-      type = type + ' pregame';
+    if (titleLowerCase.includes("postgame")) {
+      type = type + " postgame";
+    } else if (titleLowerCase.includes("pregame")) {
+      type = type + " pregame";
     }
-  } else if (titleLowerCase.includes('highlights')) {
-    type = 'highlights';
-    if (titleLowerCase.includes('pts') || titleLowerCase.includes('points')) {
+  } else if (titleLowerCase.includes("highlights")) {
+    type = "highlights";
+    if (titleLowerCase.includes("pts") || titleLowerCase.includes("points")) {
       // if it's a player highlight, try to figure out which player it is.
       let player = await Players.find({ name: name });
 
       if (player.length === 1) {
         type = `player highlights ${name}`;
-        playerId = player[0].id;
+        playerId = player[0].playerId;
       } else {
-        type = 'player highlights unidentified';
+        type = "player highlights unidentified";
       }
     } else if (
-      titleLowerCase.includes('full game') ||
-      title.includes('full highlights')
+      titleLowerCase.includes("full game") ||
+      title.includes("full highlights")
     ) {
-      type = 'full game highlights';
-    } else if (titleLowerCase.includes('1st qtr')) {
-      type = 'first quarter highlights';
-    } else if (titleLowerCase.includes('1st half')) {
-      type = 'first half highlights';
+      type = "full game highlights";
+    } else if (titleLowerCase.includes("1st qtr")) {
+      type = "first quarter highlights";
+    } else if (titleLowerCase.includes("1st half")) {
+      type = "first half highlights";
     } else if (
-      titleLowerCase.includes('duel') ||
-      titleLowerCase.includes('battle')
+      titleLowerCase.includes("duel") ||
+      titleLowerCase.includes("battle")
     ) {
-      type = 'duel highlights';
+      type = "duel highlights";
 
       // determine id of both players in the duel
       // CARE THIS IS VERY SPECIFIC, COULD BREAK EASILY BASED ON YOUTUBE TITLE
-      let player1Name = title.split('vs')[0].slice(0, -1);
-      let player2Name = '';
-      if (title.split('vs')[1]) {
+      let player1Name = title.split("vs")[0].slice(0, -1);
+      let player2Name = "";
+      if (title.split("vs")[1]) {
         player2Name =
-          title.split('vs')[1].split(' ')[1] +
-          ' ' +
-          title.split('vs')[1].split(' ')[2];
+          title.split("vs")[1].split(" ")[1] +
+          " " +
+          title.split("vs")[1].split(" ")[2];
       }
 
       let player1 = await Players.find({ name: player1Name });
@@ -246,28 +248,28 @@ async function determineVideoTypeFromTitle(title) {
 
       // if both players can be identified, send back duelIds for each so they are saved in ManyToMany relationship.
       if (player1.length === 1 && player2.length === 1) {
-        duelIds = [player1[0].id, player2[0].id];
+        duelIds = [player1[0].playerId, player2[0].playerId];
       } else if (player1.length === 1) {
-        playerId = player1.id;
+        playerId = player1[0].playerId;
       } else if (player2.length === 1) {
-        playerId = player2.id;
+        playerId = player2[0].playerId;
       }
     }
   } else if (
-    titleLowerCase.includes('duel') ||
-    titleLowerCase.includes('battle')
+    titleLowerCase.includes("duel") ||
+    titleLowerCase.includes("battle")
   ) {
-    type = 'duel highlights';
+    type = "duel highlights";
 
     // determine id of both players in the duel
     // CARE THIS IS VERY SPECIFIC, COULD BREAK EASILY BASED ON YOUTUBE TITLE
-    let player1Name = title.split('vs')[0].slice(0, -1);
-    let player2Name = '';
-    if (title.split('vs')[1]) {
+    let player1Name = title.split("vs")[0].slice(0, -1);
+    let player2Name = "";
+    if (title.split("vs")[1]) {
       player2Name =
-        title.split('vs')[1].split(' ')[1] +
-        ' ' +
-        title.split('vs')[1].split(' ')[2];
+        title.split("vs")[1].split(" ")[1] +
+        " " +
+        title.split("vs")[1].split(" ")[2];
     }
 
     let player1 = await Players.find({ name: player1Name });
@@ -275,36 +277,36 @@ async function determineVideoTypeFromTitle(title) {
 
     // if both players can be identified, send back duelIds for each so they are saved in ManyToMany relationship.
     if (player1.length === 1 && player2.length === 1) {
-      duelIds = [player1[0].id, player2[0].id];
+      duelIds = [player1[0].playerId, player2[0].playerId];
     } else if (player1.length === 1) {
-      playerId = player1.id;
+      playerId = player1[0].playerId;
     } else if (player2.length === 1) {
-      playerId = player2.id;
+      playerId = player2[0].playerId;
     }
-  } else if (titleLowerCase.includes('&')) {
-    type = 'team highlights';
+  } else if (titleLowerCase.includes("&")) {
+    type = "team highlights";
 
     // determine id of both players in the duel
     // CARE THIS IS VERY SPECIFIC, COULD BREAK EASILY BASED ON YOUTUBE TITLE
-    let player1Name = title.split('&')[0].slice(0, -1);
+    let player1Name = title.split("&")[0].slice(0, -1);
     let player2Name =
-      title.split('&')[1].split(' ')[1] +
-      ' ' +
-      title.split('&')[1].split(' ')[2];
+      title.split("&")[1].split(" ")[1] +
+      " " +
+      title.split("&")[1].split(" ")[2];
 
     let player1 = await Players.find({ name: player1Name });
     let player2 = await Players.find({ name: player2Name });
 
     // if both players can be identified, send back duelIds for each so they are saved in ManyToMany relationship.
     if (player1.length === 1 && player2.length === 1) {
-      duelIds = [player1[0].id, player2[0].id];
+      duelIds = [player1[0].playerId, player2[0].playerId];
     } else if (player1.length === 1) {
-      playerId = player1.id;
+      playerId = player1[0].playerId;
     } else if (player2.length === 1) {
-      playerId = player2.id;
+      playerId = player2[0].playerId;
     }
   } else {
-    type = 'highlights';
+    type = "highlights";
   }
   return { type, playerId, duelIds };
 }
@@ -321,17 +323,17 @@ mongoose.connect(
   function(error, connection) {
     if (error) return funcCallback(error);
 
-    log.title('Initialization');
+    log.title("Initialization");
     log.info(`Connected to the database ${db().name}`);
 
-    log.title('Main');
+    log.title("Main");
     // grab todays games and continue to update
     const todayDate = moment()
-      .subtract(1, 'd')
-      .format('YYYYMMDD');
+      .subtract(1, "d")
+      .format("YYYYMMDD");
     main(connection, todayDate).then(() => {
-      log.info('----------------------------------');
-      log.info('Closed database connection');
+      log.info("----------------------------------");
+      log.info("Closed database connection");
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
     });

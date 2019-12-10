@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-import Teams from '@/api/teams/team.model';
-import MatchesStats from '@/api/matches-stats/match-stats.model';
-import Players from '@/api/players/player.model';
-import YoutubeVideos from '@/api/videos/youtube.model';
+import Teams from "@/api/teams/team.model";
+import MatchesStats from "@/api/matches-stats/match-stats.model";
+import Players from "@/api/players/player.model";
+import YoutubeVideos from "@/api/videos/youtube.model";
 
 let MatchesSchema = new mongoose.Schema(
   {
@@ -21,7 +21,7 @@ let MatchesSchema = new mongoose.Schema(
 
     endTimeUTC: Date,
 
-    hTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams' },
+    hTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Teams" },
 
     hTeamId: String,
 
@@ -33,7 +33,7 @@ let MatchesSchema = new mongoose.Schema(
 
     hTeamScore: String,
 
-    vTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams' },
+    vTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Teams" },
 
     vTeamId: String,
 
@@ -46,6 +46,8 @@ let MatchesSchema = new mongoose.Schema(
     vTeamScore: String,
 
     statusNum: Number,
+
+    nuggetText: String,
 
     gameClock: String,
 
@@ -66,14 +68,14 @@ let MatchesSchema = new mongoose.Schema(
     stats: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'MatchesStats'
+        ref: "MatchesStats"
       }
     ],
 
     videos: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'YoutubeVideos'
+        ref: "YoutubeVideos"
       }
     ]
   },
@@ -82,11 +84,11 @@ let MatchesSchema = new mongoose.Schema(
   }
 );
 
-MatchesSchema.virtual('hTeamRecordFormatted').get(function() {
+MatchesSchema.virtual("hTeamRecordFormatted").get(function() {
   return `${this.hTeamWins}-${this.hTeamLosses}`;
 });
 
-MatchesSchema.virtual('vTeamRecordFormatted').get(function() {
+MatchesSchema.virtual("vTeamRecordFormatted").get(function() {
   return `${this.vTeamWins}-${this.vTeamLosses}`;
 });
 
@@ -99,23 +101,28 @@ MatchesSchema.statics.findMatchesByStartDate = function(date) {
       }
       resolve(matches);
     })
-      .select('-__v')
-      .select('-_id')
+      .select("-__v")
+      .select("-_id")
       .populate({
-        path: 'stats',
-        select: '-_id -__v',
-        populate: { path: 'player', select: '-_id -__v' }
+        path: "videos",
+        select: "-_id -__v",
+        populate: { path: "players", select: "-_id -__v" }
       })
-      .populate('videos hTeam vTeam', '-_id -__v');
+      .populate({
+        path: "stats",
+        select: "-_id -__v",
+        populate: { path: "player", select: "-_id -__v" }
+      })
+      .populate("hTeam vTeam", "-_id -__v");
     // use leanQueries for extra data manipulation for frontend
     // .lean({ virtuals: true })
   });
 };
 
-MatchesSchema.pre('remove', next => {
-  this.model('MatchesStats').deleteMany({ match: this._id }, next);
-  this.model('YoutubeVideos').deleteMany({ match: this._id }, next);
+MatchesSchema.pre("remove", next => {
+  this.model("MatchesStats").deleteMany({ match: this._id }, next);
+  this.model("YoutubeVideos").deleteMany({ match: this._id }, next);
 });
 
-const Matches = mongoose.model('Matches', MatchesSchema, 'Matches');
+const Matches = mongoose.model("Matches", MatchesSchema, "Matches");
 export default Matches;

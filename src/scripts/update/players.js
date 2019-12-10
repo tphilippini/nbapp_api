@@ -1,12 +1,13 @@
-import mongoose from 'mongoose';
-import { forEachSeries } from 'p-iteration';
+import mongoose from "mongoose";
+import { forEachSeries } from "p-iteration";
+import moment from "moment";
 
-import log from '@/helpers/log';
-import { db } from '@/config/config';
-import Teams from '@/api/teams/team.model';
-import Players from '@/api/players/player.model';
+import log from "@/helpers/log";
+import { db } from "@/config/config";
+import Teams from "@/api/teams/team.model";
+import Players from "@/api/players/player.model";
 
-import { checkTeamRoster } from '../api/nba';
+import { checkTeamRoster } from "../api/nba";
 
 async function main(connection) {
   return new Promise(async (resolve, reject) => {
@@ -15,7 +16,7 @@ async function main(connection) {
       await grabPlayerNames();
       resolve();
     } catch (error) {
-      log.error('Player doesnt save, see error...');
+      log.error("Player doesnt save, see error...");
       log.error(error);
       reject(error);
     }
@@ -25,30 +26,33 @@ async function main(connection) {
 async function grabPlayerNames() {
   const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
   // TEAMS
-  log.info('Finding teams...');
+  log.info("Finding teams...");
   const teams = await Teams.find({ isNBAFranchise: true });
   log.info(`Teams found : ${teams.length}`);
 
   await forEachSeries(teams, async (team, i) => {
-    await sleep(1000);
-    const players = await checkTeamRoster(team.teamId);
+    // await sleep(1000);
+    const players = await checkTeamRoster(team.teamShortName);
     await forEachSeries(players, async player => {
-      const playerToSave = await Players.findOne({ playerId: player[12] });
+      const playerToSave = await Players.findOne({
+        playerId: player.person_id
+      });
+
       if (playerToSave) {
-        log.info('----------------------------------');
-        log.info('Player exists, updating the record now...');
-        playerToSave.name = player[3];
-        playerToSave.firstName = player[3].split(' ')[0];
-        playerToSave.lastName = player[3].split(' ')[1]
-          ? player[3].split(' ')[1]
-          : '';
-        playerToSave.number = player[4];
-        playerToSave.position = player[5];
-        playerToSave.height = player[6];
-        playerToSave.weight = player[7];
-        playerToSave.birthdate = player[8];
-        playerToSave.age = player[9];
-        playerToSave.playerId = player[12];
+        log.info("----------------------------------");
+        log.info("Player exists, updating the record now...");
+        playerToSave.name = player.first_name + " " + player.last_name;
+        playerToSave.firstName = player.first_name;
+        playerToSave.lastName = player.last_name;
+        playerToSave.number = player.jersey_number;
+        playerToSave.position = player.position_short;
+        playerToSave.height = player.height_ft + "-" + player.height_in;
+        playerToSave.weight = player.weight_lbs;
+        playerToSave.birthdate = moment(player.birth_date).format(
+          "MMM DD, YYYY"
+        );
+        playerToSave.age = moment().diff(player.birth_date, "years");
+        playerToSave.playerId = player.person_id;
         playerToSave.teamId = team.teamId;
         playerToSave.teamName = team.teamName;
         playerToSave.teamTriCode = team.teamTriCode;
@@ -59,23 +63,23 @@ async function grabPlayerNames() {
             log.success(`Player updated...`);
           });
         } catch (error) {
-          log.error('Player doesnt update, see error...');
+          log.error("Player doesnt update, see error...");
           log.error(error);
         }
       } else {
-        log.info('----------------------------------');
-        log.info('Player doesnt exist, creating new record now...');
+        log.info("----------------------------------");
+        log.info("Player doesnt exist, creating new record now...");
         const newPlayer = {
-          name: player[3],
-          firstName: player[3].split(' ')[0],
-          lastName: player[3].split(' ')[1] ? player[3].split(' ')[1] : '',
-          number: player[4],
-          position: player[5],
-          height: player[6],
-          weight: player[7],
-          birthdate: player[8],
-          age: player[9],
-          playerId: player[12],
+          name: player.first_name + " " + player.last_name,
+          firstName: player.first_name,
+          lastName: player.last_name,
+          number: player.jersey_number,
+          position: player.position_short,
+          height: player.height_ft + "-" + player.height_in,
+          weight: player.weight_lbs,
+          birthdate: moment(player.birth_date).format("MMM DD, YYYY"),
+          age: moment().diff(player.birth_date, "years"),
+          playerId: player.person_id,
           teamId: team.teamId,
           teamName: team.teamName,
           teamTriCode: team.teamTriCode
@@ -84,10 +88,10 @@ async function grabPlayerNames() {
         try {
           let player = new Players(newPlayer);
           await player.save().then(m => {
-            log.success('Player saved...');
+            log.success("Player saved...");
           });
         } catch (error) {
-          log.error('Player doesnt save, see error...');
+          log.error("Player doesnt save, see error...");
           log.error(error);
         }
       }
@@ -96,7 +100,7 @@ async function grabPlayerNames() {
 
   const count = await Players.estimatedDocumentCount({});
   log.info(`Total players saved : ${count}`);
-  log.info('----------------------------------');
+  log.info("----------------------------------");
 }
 
 const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
@@ -111,12 +115,12 @@ mongoose.connect(
   function(error, connection) {
     if (error) return funcCallback(error);
 
-    log.title('Initialization');
+    log.title("Initialization");
     log.info(`Connected to the database ${db().name}`);
 
-    log.title('Main');
+    log.title("Main");
     main(connection).then(() => {
-      log.info('Closed database connection');
+      log.info("Closed database connection");
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
     });

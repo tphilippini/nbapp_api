@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
-import { forEachSeries } from 'p-iteration';
+import mongoose from "mongoose";
+import { forEachSeries } from "p-iteration";
 
-import log from '@/helpers/log';
-import { db } from '@/config/config';
-import Teams from '@/api/teams/team.model';
+import log from "@/helpers/log";
+import { db } from "@/config/config";
+import Teams from "@/api/teams/team.model";
 
-import { findTeams } from '../api/nba';
+import { findTeams } from "../api/nba";
 
 async function main() {
   return new Promise(async (resolve, reject) => {
@@ -14,7 +14,7 @@ async function main() {
       await grabTeams();
       resolve();
     } catch (error) {
-      log.error('Team doesnt save, see error...');
+      log.error("Team doesnt save, see error...");
       log.error(error);
       reject();
     }
@@ -23,7 +23,7 @@ async function main() {
 
 async function grabTeams() {
   // TEAMS
-  log.info('Finding teams...');
+  log.info("Finding teams...");
   const teams = await findTeams();
   log.info(`Teams found : ${teams.length}`);
 
@@ -31,14 +31,14 @@ async function grabTeams() {
     if (team.isNBAFranchise) {
       const teamToSave = await Teams.findOne({ teamId: team.teamId });
       if (teamToSave) {
-        log.info('----------------------------------');
+        log.info("----------------------------------");
         log.info(`${team.fullName}`);
-        log.info('Team exists, updating the record now...');
+        log.info("Team exists, updating the record now...");
         teamToSave.isNBAFranchise = team.isNBAFranchise;
         teamToSave.city = team.city;
         teamToSave.teamId = team.teamId;
         teamToSave.teamName = team.fullName;
-        teamToSave.teamShortName = team.nickname;
+        teamToSave.teamShortName = team.urlName;
         teamToSave.teamTriCode = team.tricode;
         teamToSave.confName = team.confName;
         teamToSave.divName = team.divName;
@@ -49,19 +49,19 @@ async function grabTeams() {
             log.success(`Team updated...`);
           });
         } catch (error) {
-          log.error('Team doesnt update, see error...');
+          log.error("Team doesnt update, see error...");
           log.error(error);
         }
       } else {
-        log.info('----------------------------------');
+        log.info("----------------------------------");
         log.info(`${team.fullName}`);
-        log.info('Team doesnt exist, creating new record now...');
+        log.info("Team doesnt exist, creating new record now...");
         const newTeam = {
           isNBAFranchise: team.isNBAFranchise,
           city: team.city,
           teamId: team.teamId,
           teamName: team.fullName,
-          teamShortName: team.nickname,
+          teamShortName: team.urlName,
           teamTriCode: team.tricode,
           confName: team.confName,
           divName: team.divName
@@ -70,10 +70,10 @@ async function grabTeams() {
         try {
           let t = new Teams(newTeam);
           await t.save().then(m => {
-            log.success('Team saved...');
+            log.success("Team saved...");
           });
         } catch (error) {
-          log.error('Team doesnt save, see error...');
+          log.error("Team doesnt save, see error...");
           log.error(error);
         }
       }
@@ -81,8 +81,8 @@ async function grabTeams() {
   });
 
   const count = await Teams.estimatedDocumentCount({});
-  log.info('----------------------------------');
-  log.info('----------------------------------');
+  log.info("----------------------------------");
+  log.info("----------------------------------");
   log.success(`${count} Teams save/update complete...`);
 }
 
@@ -98,13 +98,13 @@ mongoose.connect(
   function(error, connection) {
     if (error) return funcCallback(error);
 
-    log.title('Initialization');
+    log.title("Initialization");
     log.info(`Connected to the database ${db().name}`);
 
-    log.title('Main');
+    log.title("Main");
     main().then(() => {
-      log.info('----------------------------------');
-      log.info('Closed database connection');
+      log.info("----------------------------------");
+      log.info("Closed database connection");
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
     });

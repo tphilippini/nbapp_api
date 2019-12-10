@@ -1,26 +1,28 @@
-import moment from 'moment';
-import mongoose from 'mongoose';
-import axios from 'axios';
-import { forEachSeries } from 'p-iteration';
+import moment, { relativeTimeRounding } from "moment";
+import mongoose from "mongoose";
+import axios from "axios";
+import { forEachSeries } from "p-iteration";
 
-import log from '@/helpers/log';
-import { db } from '@/config/config';
+import log from "@/helpers/log";
+import { db } from "@/config/config";
 
-import Matches from '@/api/matches/match.model';
-import Players from '@/api/players/player.model';
-import Teams from '@/api/teams/team.model';
-import MatchesStats from '@/api/matches-stats/match-stats.model';
+import Matches from "@/api/matches/match.model";
+import Players from "@/api/players/player.model";
+import Teams from "@/api/teams/team.model";
+import MatchesStats from "@/api/matches-stats/match-stats.model";
 
-import { findTodayMatches } from '@/scripts/api/nba';
+import { findTodayMatches } from "@/scripts/api/nba";
+
+let listStatsIds = [];
 
 async function main(connection, dateFormatted) {
   return new Promise(async (resolve, reject) => {
     // MATCHES
-    log.info('Finding today matches...');
+    log.info("Finding today matches...");
     const todaysMatches = await findTodayMatches(dateFormatted);
     log.info(`Todays matches found : ${todaysMatches.length}`);
     if (todaysMatches.length > 0) {
-      log.info('Finding teams...');
+      log.info("Finding teams...");
       const teams = await Teams.find({ isNBAFranchise: true });
 
       await forEachSeries(todaysMatches, async game => {
@@ -30,12 +32,13 @@ async function main(connection, dateFormatted) {
 
         // if match exists and it's not over, update it
         if (existingMatch && existingMatch.statusNum !== 3) {
-          log.info('----------------------------------');
+          log.info("----------------------------------");
           log.info(
             `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
           );
-          log.info('Match exists, game is live, updating the record now...');
+          log.info("Match exists, game is live, updating the record now...");
           existingMatch.isGameActivated = game.isGameActivated;
+          existingMatch.nuggetText = game.nugget.text;
           existingMatch.hTeamScore = game.hTeam.score;
           existingMatch.vTeamScore = game.vTeam.score;
           existingMatch.statusNum = game.statusNum;
@@ -52,20 +55,21 @@ async function main(connection, dateFormatted) {
           try {
             let data = new Matches(existingMatch);
             await data.updateOne(existingMatch).then(m => {
-              log.success('Match is live, updated game info...');
+              log.success("Match is live, updated game info...");
             });
           } catch (error) {
-            log.error('Match doesnt update, see error...');
+            log.error("Match doesnt update, see error...");
             log.error(error);
           }
         } else if (existingMatch && existingMatch.statusNum === 3) {
-          log.info('----------------------------------');
+          log.info("----------------------------------");
           log.info(
             `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
           );
-          log.info('Match exists, game is over, updating the record now...');
+          log.info("Match exists, game is over, updating the record now...");
           existingMatch.endTimeUTC = game.endTimeUTC;
           existingMatch.isGameActivated = game.isGameActivated;
+          existingMatch.nuggetText = game.nugget.text;
           existingMatch.currentPeriod = game.period.current;
           existingMatch.periodType = game.period.type;
           existingMatch.maxRegular = game.period.maxRegular;
@@ -74,18 +78,18 @@ async function main(connection, dateFormatted) {
           try {
             let data = new Matches(existingMatch);
             await data.updateOne(existingMatch).then(m => {
-              log.success('Match updated...');
+              log.success("Match updated...");
             });
           } catch (error) {
-            log.error('Match doesnt update, see error...');
+            log.error("Match doesnt update, see error...");
             log.error(error);
           }
         } else {
-          log.info('----------------------------------');
+          log.info("----------------------------------");
           log.info(
             `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
           );
-          log.info('Match doesnt exist, creating new record now...');
+          log.info("Match doesnt exist, creating new record now...");
 
           let hTeam = teams.find(t => t.teamTriCode === game.hTeam.triCode);
           let vTeam = teams.find(t => t.teamTriCode === game.vTeam.triCode);
@@ -110,6 +114,7 @@ async function main(connection, dateFormatted) {
             vTeamTriCode: game.vTeam.triCode,
             vTeamScore: game.vTeam.score,
             statusNum: game.statusNum,
+            nuggetText: game.nugget.text,
             currentPeriod: game.period.current,
             periodType: game.period.type,
             maxRegular: game.period.maxRegular,
@@ -120,16 +125,16 @@ async function main(connection, dateFormatted) {
           try {
             let data = new Matches(match);
             await data.save().then(m => {
-              log.success('Match saved...');
+              log.success("Match saved...");
             });
           } catch (error) {
-            log.error('Match doesnt save, see error...');
+            log.error("Match doesnt save, see error...");
             log.error(error);
           }
         }
       });
 
-      log.info('----------------------------------');
+      log.info("----------------------------------");
       await forEachSeries(todaysMatches, async game => {
         const existingMatch = await Matches.findOne({
           matchId: game.gameId
@@ -141,18 +146,18 @@ async function main(connection, dateFormatted) {
           existingMatch &&
           (existingMatch.statusNum === 2 || existingMatch.statusNum === 3)
         ) {
-          log.info('----------------------------------');
+          log.info("----------------------------------");
           log.info(
             `${game.vTeam.triCode} ${game.vTeam.score} @ ${game.hTeam.score} ${game.hTeam.triCode}`
           );
-          log.info('Match exists, game is live, updating the record now...');
+          log.info("Match exists, updating the record now...");
 
           let result = await axios.get(url);
-          let statJSON = JSON.parse(result.data.split('var g_boxscore=')[1]);
+          let statJSON = JSON.parse(result.data.split("var g_boxscore=")[1]);
           let homeTeamStats = statJSON.stats.home.players;
           let awayTeamStats = statJSON.stats.visitor.players;
 
-          log.info('Saving players stats...');
+          log.info("Saving players stats...");
           await saveStats(existingMatch, [...homeTeamStats, ...awayTeamStats]);
 
           existingMatch.gameClock = statJSON.score.periodTime.gameClock;
@@ -166,19 +171,20 @@ async function main(connection, dateFormatted) {
           try {
             let data = new Matches(existingMatch);
             await data.updateOne(existingMatch).then(m => {
-              log.success('Match is live, updated game info...');
+              log.info("----------------------------------");
+              log.success("Match is live, updated game info...");
             });
           } catch (error) {
-            log.error('Match didnt start probably, see error...');
+            log.error("Match didnt start probably, see error...");
             log.error(error);
           }
         } else {
-          log.info('----------------------------------');
-          log.info('Match doesnt exist, didnt start probably...');
+          log.info("----------------------------------");
+          log.info("Match doesnt exist, didnt start probably...");
         }
       });
-      log.info('----------------------------------');
-      log.success('Match record save/update complete...');
+      log.info("----------------------------------");
+      log.success("Match record save/update complete...");
     }
 
     resolve();
@@ -186,6 +192,7 @@ async function main(connection, dateFormatted) {
 }
 
 async function saveStats(match, stats) {
+  listStatsIds = [];
   await forEachSeries(stats, async stat => {
     return new Promise(async (resolve, reject) => {
       // find the player
@@ -197,8 +204,8 @@ async function saveStats(match, stats) {
       });
 
       if (existingMatchStat) {
-        log.info('----------------------------------');
-        log.info('MatchStat exists, updating the record now...');
+        log.info("----------------------------------");
+        log.info("MatchStat exists, updating the record now...");
         existingMatchStat.statsJSON = stat;
         try {
           let existingMatchStatPlayer = new MatchesStats(existingMatchStat);
@@ -208,12 +215,12 @@ async function saveStats(match, stats) {
             );
           });
         } catch (error) {
-          log.error('MatchStat for player doesnt update, see error...');
+          log.error("MatchStat for player doesnt update, see error...");
           log.error(error);
         }
       } else {
-        log.info('----------------------------------');
-        log.info('MatchStat doesnt exist, creating new record now...');
+        log.info("----------------------------------");
+        log.info("MatchStat doesnt exist, creating new record now...");
         const matchStat = {
           matchIdFull: match.matchId,
           playerIdFull: stat.id,
@@ -231,8 +238,13 @@ async function saveStats(match, stats) {
             // Update stats list in match for populate
             match.stats.push(m._id);
           });
+
+          await match.save().then(e => {
+            log.success("Saved stats in existing match...");
+            log.info("----------------------------------");
+          });
         } catch (error) {
-          log.error('MatchStat doesnt save, see error...');
+          log.error("MatchStat doesnt save, see error...");
           log.error(error);
         }
       }
@@ -253,17 +265,20 @@ mongoose.connect(
   function(error, connection) {
     if (error) return funcCallback(error);
 
-    log.title('Initialization');
+    log.title("Initialization");
     log.info(`Connected to the database ${db().name}`);
 
-    log.title('Main');
+    log.title("Main");
     // grab todays games and continue to update
-    const todayDate = moment()
-      .subtract(1, 'd')
-      .format('YYYYMMDD');
+    const todayDate =
+      moment().hours() < 16
+        ? moment()
+            .subtract(1, "d")
+            .format("YYYYMMDD")
+        : moment().format("YYYYMMDD");
     main(connection, todayDate).then(() => {
-      log.info('----------------------------------');
-      log.info('Closed database connection');
+      log.info("----------------------------------");
+      log.info("Closed database connection");
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
     });

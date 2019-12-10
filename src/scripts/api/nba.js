@@ -1,6 +1,6 @@
-import moment from 'moment';
-import axios from 'axios';
-import log from '@/helpers/log';
+import moment from "moment";
+import axios from "axios";
+import log from "@/helpers/log";
 
 async function findTodayMatches(date) {
   return new Promise(async (resolve, reject) => {
@@ -19,7 +19,9 @@ async function findTodayMatches(date) {
 async function findTeams() {
   return new Promise(async (resolve, reject) => {
     try {
-      const uri = `https://data.nba.net/prod/v2/${moment().format("Y")}/teams.json`;
+      const uri = `https://data.nba.net/prod/v2/${moment().format(
+        "Y"
+      )}/teams.json`;
       log.success(uri);
       const teams = await axios.get(uri);
       resolve(teams.data.league.standard);
@@ -30,13 +32,14 @@ async function findTeams() {
   });
 }
 
-async function checkTeamRoster(teamId) {
+async function checkTeamRoster(teamShortName) {
   return new Promise(async (resolve, reject) => {
     try {
-      const uri = `http://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`
+      // const uri = `https://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`;
+      const uri = `https://data.nba.net/data/json/cms/2019/team/${teamShortName}/roster.json`;
       log.success(uri);
       const roster = await axios.get(uri);
-      resolve(roster.data.resultSets[0].rowSet);
+      resolve(roster.data.sports_content.roster.players.player);
     } catch (error) {
       log.error(error);
       reject(error);
@@ -55,8 +58,8 @@ async function checkGameStatus(matches) {
       if (match.statusNum === 3) {
         // game is over
         // check how many hours ago it ended
-        const postGameHours = (moment().diff(moment(match.endTimeUTC), 'hours'));
-        if (postGameHours > '12') {
+        const postGameHours = moment().diff(moment(match.endTimeUTC), "hours");
+        if (postGameHours > "12") {
           over.push(match);
         } else {
           overRecent.push(match);
@@ -73,9 +76,4 @@ async function checkGameStatus(matches) {
   });
 }
 
-export {
-  findTodayMatches,
-  findTeams,
-  checkGameStatus,
-  checkTeamRoster
-};
+export { findTodayMatches, findTeams, checkGameStatus, checkTeamRoster };

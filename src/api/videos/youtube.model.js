@@ -1,17 +1,19 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const YoutubeVideosSchema = new mongoose.Schema({
   id: Number,
 
   match: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Matches'
+    ref: "Matches"
   },
 
-  player: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Players'
-  },
+  players: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Players"
+    }
+  ],
 
   channelTitle: String,
 
@@ -46,16 +48,16 @@ YoutubeVideosSchema.statics.findYoutubeVideoByMatchID = function(id) {
       }
       resolve(docs);
     })
-      .select('-__v')
-      .select('-_id');
+      .select("-__v")
+      .select("-_id");
     // use leanQueries for extra data manipulation for frontend
     // .lean();
   });
 };
 
 const YoutubeVideos = mongoose.model(
-  'YoutubeVideos',
+  "YoutubeVideos",
   YoutubeVideosSchema,
-  'YoutubeVideos'
+  "YoutubeVideos"
 );
 export default YoutubeVideos;

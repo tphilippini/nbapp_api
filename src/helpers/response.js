@@ -39,9 +39,9 @@ response.success = (res, status, code, ...data) => {
     data
   };
 
-  if (data.length === 0) {
-    delete success.data;
-  }
+  // if (data.length === 0) {
+  //   delete success.data;
+  // }
 
   res.status(status);
   res.json(success);
