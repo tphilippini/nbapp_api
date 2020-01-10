@@ -1,28 +1,28 @@
-'use strict';
+"use strict";
 
-import express from 'express';
-import bodyParser from 'body-parser';
-import expressJwt from 'express-jwt';
-import mongoose from 'mongoose';
+import express from "express";
+import bodyParser from "body-parser";
+import expressJwt from "express-jwt";
+import mongoose from "mongoose";
 
-import { api, db } from '@/config/config';
+import { api, db } from "@/config/config";
 // import conn from '@/config/database';
-import passport from '@/config/passport';
+import passport from "@/config/passport";
 
-import { version } from '@@/package.json';
+import { version } from "@@/package.json";
 
-import corsMidd from '@/middlewares/cors';
-import otherMidd from '@/middlewares/other';
-import authErrorMidd from '@/middlewares/authError';
+import corsMidd from "@/middlewares/cors";
+import otherMidd from "@/middlewares/other";
+import authErrorMidd from "@/middlewares/authError";
 
-import deviceRouter from '@/api/devices/device.routes';
-import userRouter from '@/api/users/user.routes';
-import matchRouter from '@/api/matches/match.routes';
-import authRouter from '@/api/auth/auth.routes';
+import deviceRouter from "@/api/devices/device.routes";
+import userRouter from "@/api/users/user.routes";
+import matchRouter from "@/api/matches/match.routes";
+import authRouter from "@/api/auth/auth.routes";
 
 // import models, { connectDb } from '@/models';
 
-import log from '@/helpers/log';
+import log from "@/helpers/log";
 
 const app = express();
 
@@ -59,7 +59,7 @@ class Server {
           secret: api().access_token.secret
         }).unless({
           path: [
-            { url: `${api().version}/users`, methods: ['OPTIONS', 'POST'] },
+            { url: `${api().version}/users`, methods: ["OPTIONS", "POST"] },
             `${api().version}/auth`,
             `${api().version}/auth/token`,
             `${api().version}/auth/google/token`,
@@ -74,7 +74,7 @@ class Server {
       // Middleware to handle error from authentication
       app.use(authErrorMidd);
 
-      log.title('Initialization');
+      log.title("Initialization");
       log.success(`Hi! The current env is ${process.env.NODE_ENV}`);
       log.success(`Hi! The current version is ${version}`);
 
@@ -97,7 +97,7 @@ class Server {
       app.use(function(req, res) {
         res
           .status(404)
-          .json({ status: 404, code: 'not_found', error: 'Not Found' });
+          .json({ status: 404, code: "not_found", error: "Not Found" });
       });
 
       try {
@@ -124,12 +124,12 @@ class Server {
       });
 
       const connection = mongoose.connection;
-      connection.on('error', () => {
+      connection.on("error", () => {
         log.error(`Connection error to the database ${db().name}`);
         reject();
       });
 
-      connection.once('open', () => {
+      connection.once("open", () => {
         log.success(`Hi! Connecting to the database ${db().name}`);
       });
 
@@ -144,7 +144,7 @@ class Server {
     return new Promise((resolve, reject) => {
       this.server = app.listen(api().port, err => {
         if (err) {
-          reject({ type: 'error', obj: err });
+          reject({ type: "error", obj: err });
           return;
         }
 
