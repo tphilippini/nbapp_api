@@ -1,4 +1,4 @@
-import moment, { relativeTimeRounding } from "moment";
+import moment from "moment";
 import mongoose from "mongoose";
 import axios from "axios";
 import { forEachSeries } from "p-iteration";
@@ -170,7 +170,7 @@ async function main(connection, dateFormatted) {
 
           try {
             let data = new Matches(existingMatch);
-            await data.updateOne(existingMatch).then(m => {
+            await data.updateOne(existingMatch).then(() => {
               log.info("----------------------------------");
               log.success("Match is live, updated game info...");
             });

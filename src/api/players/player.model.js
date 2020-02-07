@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const PlayersSchema = new mongoose.Schema({
   id: Number,
@@ -27,8 +27,12 @@ const PlayersSchema = new mongoose.Schema({
 
   teamTriCode: String,
 
-  teamName: String
+  teamName: String,
+
+  efficiency: Number,
+
+  notation: Number
 });
 
-const Players = mongoose.model('Players', PlayersSchema, 'Players');
+const Players = mongoose.model("Players", PlayersSchema, "Players");
 export default Players;
