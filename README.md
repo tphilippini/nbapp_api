@@ -15,6 +15,8 @@
 
 - Si changement de mot de passe : révoquer tous les devices de l'utilisateur excepté le device courant
 
+- Si League Status toujours en cours avec X journée, relance mail
+
 Imaginez un refresh token comme étant l'option "se souvenir de moi" dans une SPA.
 
 Un refresh token réduira le champs d'action sur la durée pour un attaquant. En effet l'access_token est valide 1h, le refresh_token peut être valide bcp plus longtemps, même "à vie". J'ai tout de même préféré lui donner une durée de vie de 7 jours.

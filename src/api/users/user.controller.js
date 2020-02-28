@@ -610,6 +610,9 @@ userController.unlinkAccount = (req, res) => {
               });
           }
         }
+      } else {
+        errors.push("invalid_grant_type");
+        checkEvent.emit("error", errors);
       }
     }
 

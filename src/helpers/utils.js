@@ -18,6 +18,17 @@ const setDefaultAlias = str => {
   return alias.concat(randomInt);
 };
 
+const generatePassword = (length = 10) => {
+  const chars =
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  return Array(length)
+    .fill(chars)
+    .map(function(x) {
+      return x[Math.floor(Math.random() * x.length)];
+    })
+    .join("");
+};
+
 const sum = array => {
   return array.reduce((pv, cv) => parseFloat(pv) + parseFloat(cv), 0);
 };
@@ -615,4 +626,11 @@ const slug = str => {
     .replace(/-+$/, "");
 };
 
-export { sum, sub, slug, randomIntFromInterval, setDefaultAlias };
+export {
+  sum,
+  sub,
+  slug,
+  generatePassword,
+  randomIntFromInterval,
+  setDefaultAlias
+};

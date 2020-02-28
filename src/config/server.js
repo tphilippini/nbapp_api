@@ -18,6 +18,7 @@ import authErrorMidd from "@/middlewares/authError";
 import deviceRouter from "@/api/devices/device.routes";
 import userRouter from "@/api/users/user.routes";
 import matchRouter from "@/api/matches/match.routes";
+import leagueRouter from "@/api/leagues/league.routes";
 import authRouter from "@/api/auth/auth.routes";
 
 // import models, { connectDb } from '@/models';
@@ -92,6 +93,7 @@ class Server {
       app.use(`${api().version}/devices`, deviceRouter);
       app.use(`${api().version}/users`, userRouter);
       app.use(`${api().version}/matches`, matchRouter);
+      app.use(`${api().version}/leagues`, leagueRouter);
       // Could use decentralized authorization server
       app.use(`${api().version}/auth`, authRouter);
       app.use(function(req, res) {
