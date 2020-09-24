@@ -147,14 +147,15 @@ class Server {
    */
   static listen() {
     return new Promise((resolve, reject) => {
-      this.server = app.listen(process.env.API_PORT, (err) => {
+      const PORT = process.env.PORT || process.env.API_PORT;
+      this.server = app.listen(PORT, (err) => {
         if (err) {
           // eslint-disable-next-line prefer-promise-reject-errors
           reject({ type: 'error', obj: err });
           return;
         }
 
-        log.success(`Server is listening on ${process.env.API_PORT}`);
+        log.success(`Server is listening on ${PORT}`);
         resolve();
       });
     });

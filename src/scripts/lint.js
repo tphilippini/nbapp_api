@@ -1,6 +1,6 @@
 import execa from 'execa';
 
-import log from '../tests/unit/helpers/node_modules/@/helpers/log';
+import log from '@/helpers/log';
 import loader from '@/helpers/loader';
 
 /**
@@ -13,6 +13,7 @@ import loader from '@/helpers/loader';
   try {
     const globs = [
       //   '"app/**/*.es6.js"',
+      //   '"hotword/index.js"',
       //   '"packages/**/*.js"',
       '"./src/**/*.js"',
       //   '"server/src/**/*.js"',
