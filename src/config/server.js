@@ -20,7 +20,6 @@ import leagueRouter from '@/api/leagues/league.routes';
 import authRouter from '@/api/auth/auth.routes';
 
 import log from '@/helpers/log';
-import loader from '@/helpers/loader';
 
 const app = express();
 
@@ -118,7 +117,6 @@ class Server {
    */
   static database() {
     return new Promise((resolve, reject) => {
-      loader.start();
       log.info('Connecting to the database...');
 
       mongoose.connect(process.env.DB_URL, {
@@ -130,13 +128,11 @@ class Server {
       const { connection } = mongoose;
       connection.on('error', () => {
         log.error(`Connection error to the database ${process.env.DB_NAME}`);
-        loader.stop();
         reject();
       });
 
       connection.once('open', () => {
         log.success(`Hi! Connecting to the database ${process.env.DB_NAME}`);
-        loader.stop();
         resolve();
       });
     });
