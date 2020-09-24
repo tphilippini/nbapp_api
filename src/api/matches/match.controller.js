@@ -1,17 +1,17 @@
-"use strict";
+'use strict';
 
-import EventEmitter from "events";
-import moment from "moment";
+import EventEmitter from 'events';
+import moment from 'moment';
 
-import Matches from "@/api/matches/match.model";
+import Matches from '@/api/matches/match.model';
 
-import log from "@/helpers/log";
-import response from "@/helpers/response";
+import log from '@/helpers/log';
+import response from '@/helpers/response';
 
 const matchController = {};
 
 matchController.matchByDate = (req, res) => {
-  log.info("Hi! Getting matches...");
+  log.info('Hi! Getting matches...');
 
   const date = req.params.startDate;
 
@@ -20,36 +20,37 @@ matchController.matchByDate = (req, res) => {
   const checking = () => {
     const errors = [];
     if (!date) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      if (!moment(date, "yyyymmdd").isValid()) {
-        errors.push("invalid_param_value");
+      if (!moment(date).isValid()) {
+        errors.push('invalid_param_value');
       }
 
       if (errors.length === 0) {
         Matches.findMatchesByStartDate(date)
-          .then(matches => {
-            if (matches.length > 0)
-              checkEvent.emit("success", "result_found", matches);
-            else checkEvent.emit("success", "result_empty", []);
+          .then((matches) => {
+            if (matches.length > 0) {
+              checkEvent.emit('success', 'result_found', matches);
+            } else checkEvent.emit('success', 'result_empty', []);
           })
-          .catch(() => {
-            errors.push("invalid_param_value");
-            checkEvent.emit("error", errors);
+          .catch((err) => {
+            console.log(err);
+            errors.push('invalid_param_value');
+            checkEvent.emit('error', errors);
           });
       }
     }
 
     if (errors.length > 0) {
-      checkEvent.emit("error", errors);
+      checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     response.error(res, 400, err);
   });
 
-  checkEvent.on("success", (code, result) => {
+  checkEvent.on('success', (code, result) => {
     response.success(res, 200, code, ...result);
   });
 

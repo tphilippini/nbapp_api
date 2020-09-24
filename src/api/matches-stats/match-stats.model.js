@@ -11,13 +11,13 @@ const MatchesStatsSchema = new mongoose.Schema({
 
   player: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Players'
+    ref: 'Players',
   },
 
   match: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Matches'
-  }
+    ref: 'Matches',
+  },
 });
 
 const MatchesStats = mongoose.model(

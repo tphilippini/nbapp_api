@@ -1,0 +1,19 @@
+{
+  "bail": true,
+  "verbose": true,
+  "notify": true,
+  "collectCoverage": true,
+  "rootDir": "../..",
+  "testMatch": ["<rootDir>/tests/unit/**/*.spec.js"],
+  "setupFiles": ["jest-canvas-mock"],
+  "setupFilesAfterEnv": ["<rootDir>/tests/unit/unit.setup.js"],
+  "coverageDirectory": "<rootDir>/tests/coverage",
+  "collectCoverageFrom": [
+    "<rootDir>/**/*.js",
+    "!<rootDir>/api/**/*.js",
+    "!<rootDir>/config/**/*.js",
+    "!<rootDir>/scripts/**/*.js",
+    "!<rootDir>/middlewares/**/*.js",
+    "!<rootDir>/index.js"
+  ]
+}

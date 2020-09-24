@@ -1,5 +1,7 @@
 # NBA APP BACKEND API
 
+http://data.nba.net/10s/prod/v1/today.json
+
 ## TODO:
 
 0. Send forgot email
@@ -25,7 +27,7 @@ On pourra révoquer un refresh token, donc l'accès à un device spécifique.
 
 Notre système d'authentification est multi-devices, il est possible d'être connecté sur un même compte via plusieurs clients car chaque device a son propre refresh_token
 
-On veut que notre projet soit multi-devices, donc possibilité d'être authentifié sur plusieurs appareils en même temps. Par conséquent on par du principe qu'un utilisateur peut avoir plusieurs devices, qui eux vont être authentifié
+On veut que notre projet soit multi-devices, donc possibilité d'être authentifié sur plusieurs appareils en même temps. Par conséquent on part du principe qu'un utilisateur peut avoir plusieurs devices, qui eux vont être authentifié
 
 Requête : /auth/token (email=xxx&password=xxx&user_typer=user&grant_type=password)
 Réponse : https://i.gyazo.com/2f697fb402116b23c9a8f128982ba6c4.png

@@ -1,12 +1,10 @@
 'use strict';
 
-import { app } from '@/config/config';
-
 const corsMidd = (req, res, next) => {
   // Allow only a specific client to request to the API (depending of the env)
   res.header(
     'Access-Control-Allow-Origin',
-    `http://${app().host}:${app().port}`
+    `http://${process.env.APP_HOST}:${process.env.APP_PORT}`
   );
 
   // Allow several headers for our requests

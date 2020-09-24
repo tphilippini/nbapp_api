@@ -17,11 +17,13 @@ const TeamsSchema = new mongoose.Schema({
 
   confName: String,
 
-  divName: String
+  divName: String,
 });
 
-TeamsSchema.statics.findOneByTeamId = function(teamId) {
+// eslint-disable-next-line func-names
+TeamsSchema.statics.findOneByTeamId = function (teamId) {
   return new Promise((resolve, reject) => {
+    // eslint-disable-next-line consistent-return
     this.findOne({ teamId }, (error, result) => {
       if (error) {
         return reject(error);

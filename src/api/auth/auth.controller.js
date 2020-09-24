@@ -1,36 +1,38 @@
-"use strict";
+/* eslint-disable consistent-return */
+/* eslint-disable no-underscore-dangle */
 
-import bcrypt from "bcrypt";
-import uuid from "uuid";
-import EventEmitter from "events";
-import { isUUID } from "validator";
-import ua from "useragent";
+'use strict';
 
-import Users from "@/api/users/user.model";
-import Devices from "@/api/devices/device.model";
+import bcrypt from 'bcrypt';
+import uuid from 'uuid';
+import EventEmitter from 'events';
+import { isUUID } from 'validator';
+import ua from 'useragent';
 
-import { app, api } from "@/config/config";
-import passport from "@/config/passport";
+import Users from '@/api/users/user.model';
+import Devices from '@/api/devices/device.model';
 
-import { isSha1 } from "@/helpers/validator";
+import passport from '@/config/passport';
+
+import { isSha1 } from '@/helpers/validator';
 import {
   generateAccessToken,
   generateRefreshToken,
   generateResetToken,
-  validateToken
-} from "@/helpers/token";
-import response from "@/helpers/response";
-import log from "@/helpers/log";
-import mailer from "@/helpers/mailer";
+  validateToken,
+} from '@/helpers/token';
+import response from '@/helpers/response';
+import log from '@/helpers/log';
+import mailer from '@/helpers/mailer';
 // import { runInNewContext } from 'vm';
 
 const authController = {};
 
 authController.post = (req, res) => {
   // TODO: deal with it when mobile is coming (by taking device name as default)
-  const deviceName = "Ordinateur principal";
+  const deviceName = 'Ordinateur principal';
 
-  const agent = ua.parse(req.headers["user-agent"]);
+  const agent = ua.parse(req.headers['user-agent']);
   const uaName = agent.toString();
 
   const grantType = req.body.grant_type;
@@ -42,47 +44,47 @@ authController.post = (req, res) => {
     const errors = [];
 
     if (!grantType) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      const allowedUserTypes = ["user"];
+      const allowedUserTypes = ['user'];
 
-      if (grantType === "password") {
-        log.info("Hi! Authenticating...");
+      if (grantType === 'password') {
+        log.info('Hi! Authenticating...');
 
-        const email = req.body.email;
-        const password = req.body.password;
+        const { email } = req.body;
+        const { password } = req.body;
 
         if (!email || !password || !userType) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
-            errors.push("invalid_user_type");
+            errors.push('invalid_user_type');
           }
 
           if (errors.length === 0) {
-            passport.authenticate("local", { session: false }, (err, user) => {
+            passport.authenticate('local', { session: false }, (err, user) => {
               if (err) {
-                log.error("Hi! Password validation on error...");
+                log.error('Hi! Password validation on error...');
                 errors.push(err);
-                return checkEvent.emit("error", errors);
+                return checkEvent.emit('error', errors);
               }
 
-              log.info("Hi! Generating tokens...");
-              return checkEvent.emit("success_password_grant", user);
+              log.info('Hi! Generating tokens...');
+              return checkEvent.emit('success_password_grant', user);
             })(req, res);
           }
         }
-      } else if (grantType === "refresh_token") {
-        log.info("Hi! Refreshing tokens...");
+      } else if (grantType === 'refresh_token') {
+        log.info('Hi! Refreshing tokens...');
 
         const refreshToken = req.body.refresh_token;
         const clientId = req.body.client_id;
 
         if (!refreshToken || !clientId) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (!isUUID(clientId) || !isSha1(refreshToken)) {
-            errors.push("invalid_client");
+            errors.push('invalid_client');
           }
 
           if (errors.length === 0) {
@@ -97,31 +99,31 @@ authController.post = (req, res) => {
             //     }
             //   }
             // );
-            errors.push("invalid_client");
-            return checkEvent.emit("error", errors);
+            errors.push('invalid_client');
+            return checkEvent.emit('error', errors);
           }
         }
       } else {
-        errors.push("invalid_grant_type");
+        errors.push('invalid_grant_type');
       }
     }
 
     if (errors.length > 0) {
-      return checkEvent.emit("error", errors);
+      return checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     let status = 400;
 
-    if (err[0] === "invalid_credentials") {
+    if (err[0] === 'invalid_credentials') {
       status = 401;
     }
 
     response.error(res, status, err);
   });
 
-  checkEvent.on("success_password_grant", result => {
+  checkEvent.on('success_password_grant', (result) => {
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
@@ -132,29 +134,29 @@ authController.post = (req, res) => {
       userType
     );
 
-    let device = new Devices({
+    const device = new Devices({
       uuid: deviceId,
       userId: result._id,
-      userType: userType,
-      refreshToken: refreshToken,
+      userType,
+      refreshToken,
       name: deviceName,
-      ua: uaName
+      ua: uaName,
     });
 
-    device.save(err => {
+    device.save((err) => {
       if (err) {
-        let errors = [];
+        const errors = [];
         errors.push(err);
         response.error(res, 500, errors);
       }
 
       // TODO Use "let" when other model is available
-      const code = "user_authenticated";
+      const code = 'user_authenticated';
 
       response.success(res, 200, code, {
         access_token: accessToken,
-        token_type: "bearer",
-        expires_in: api().access_token.exp,
+        token_type: 'bearer',
+        expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
         refresh_token: refreshToken,
         client_id: deviceId,
         uuid: result.uuid,
@@ -164,12 +166,12 @@ authController.post = (req, res) => {
         lastName: result.lastName,
         methods: result.methods,
         fid: result.facebook.id || undefined,
-        gid: result.google.id || undefined
+        gid: result.google.id || undefined,
       });
     });
   });
 
-  checkEvent.on("success_refresh_token_grant", result => {
+  checkEvent.on('success_refresh_token_grant', (result) => {
     const deviceId = uuid.v4();
 
     const newAccessToken = generateAccessToken(
@@ -179,14 +181,14 @@ authController.post = (req, res) => {
     );
     const newRefreshToken = generateRefreshToken(deviceId);
 
-    console.log("update refresh token", newAccessToken, newRefreshToken);
-    /*Device.updateRefreshToken(
+    console.log('update refresh token', newAccessToken, newRefreshToken);
+    /* Device.updateRefreshToken(
       [newRefreshToken, result.refreshToken, result.uuid],
       () => {
         response.success(res, 200, 'tokens_updated', {
           access_token: newAccessToken,
           token_type: 'bearer',
-          expires_in: api().access_token.exp,
+          expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
           refresh_token: newRefreshToken,
           client_id: result.uuid
         });
@@ -199,9 +201,9 @@ authController.post = (req, res) => {
 };
 
 authController.google = (req, res) => {
-  const deviceName = "Ordinateur principal";
+  const deviceName = 'Ordinateur principal';
 
-  const agent = ua.parse(req.headers["user-agent"]);
+  const agent = ua.parse(req.headers['user-agent']);
   const uaName = agent.toString();
 
   const grantType = req.body.grant_type;
@@ -213,33 +215,33 @@ authController.google = (req, res) => {
     const errors = [];
 
     if (!grantType) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      const allowedUserTypes = ["user"];
+      const allowedUserTypes = ['user'];
 
-      if (grantType === "google") {
-        log.info("Hi! Authenticating...");
+      if (grantType === 'google') {
+        log.info('Hi! Authenticating...');
 
         const token = req.body.access_token;
 
         if (!token || !userType) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
-            errors.push("invalid_user_type");
+            errors.push('invalid_user_type');
           }
 
           if (errors.length === 0) {
-            passport.authenticate("google", { session: false }, (err, user) => {
+            passport.authenticate('google', { session: false }, (err, user) => {
               if (err) {
-                log.error("Hi! Password google validation on error...");
+                log.error('Hi! Password google validation on error...');
                 log.error(err);
-                errors.push("invalid_credentials");
-                return checkEvent.emit("error", errors);
+                errors.push('invalid_credentials');
+                return checkEvent.emit('error', errors);
               }
 
-              log.info("Hi! Generating tokens...");
-              return checkEvent.emit("success_google_grant", user);
+              log.info('Hi! Generating tokens...');
+              return checkEvent.emit('success_google_grant', user);
             })(req, res);
           }
         }
@@ -247,21 +249,21 @@ authController.google = (req, res) => {
     }
 
     if (errors.length > 0) {
-      return checkEvent.emit("error", errors);
+      return checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     let status = 400;
 
-    if (err[0] === "invalid_credentials") {
+    if (err[0] === 'invalid_credentials') {
       status = 401;
     }
 
     response.error(res, status, err);
   });
 
-  checkEvent.on("success_google_grant", result => {
+  checkEvent.on('success_google_grant', (result) => {
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
@@ -272,29 +274,29 @@ authController.google = (req, res) => {
       userType
     );
 
-    let device = new Devices({
+    const device = new Devices({
       uuid: deviceId,
       userId: result._id,
-      userType: userType,
-      refreshToken: refreshToken,
+      userType,
+      refreshToken,
       name: deviceName,
-      ua: uaName
+      ua: uaName,
     });
 
-    device.save(err => {
+    device.save((err) => {
       if (err) {
-        let errors = [];
+        const errors = [];
         errors.push(err);
         response.error(res, 500, errors);
       }
 
       // TODO Use "let" when other model is available
-      const code = "user_authenticated";
+      const code = 'user_authenticated';
 
       response.success(res, 200, code, {
         access_token: accessToken,
-        token_type: "bearer",
-        expires_in: api().access_token.exp,
+        token_type: 'bearer',
+        expires_in: 3600,
         refresh_token: refreshToken,
         client_id: deviceId,
         uuid: result.uuid,
@@ -304,7 +306,7 @@ authController.google = (req, res) => {
         lastName: result.lastName,
         methods: result.methods,
         fid: result.facebook.id || undefined,
-        gid: result.google.id || undefined
+        gid: result.google.id || undefined,
       });
     });
   });
@@ -313,9 +315,9 @@ authController.google = (req, res) => {
 };
 
 authController.facebook = (req, res) => {
-  const deviceName = "Ordinateur principal";
+  const deviceName = 'Ordinateur principal';
 
-  const agent = ua.parse(req.headers["user-agent"]);
+  const agent = ua.parse(req.headers['user-agent']);
   const uaName = agent.toString();
 
   const grantType = req.body.grant_type;
@@ -327,35 +329,35 @@ authController.facebook = (req, res) => {
     const errors = [];
 
     if (!grantType) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      const allowedUserTypes = ["user"];
+      const allowedUserTypes = ['user'];
 
-      if (grantType === "facebook") {
-        log.info("Hi! Authenticating...");
+      if (grantType === 'facebook') {
+        log.info('Hi! Authenticating...');
 
         const token = req.body.access_token;
 
         if (!token || !userType) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
-            errors.push("invalid_user_type");
+            errors.push('invalid_user_type');
           }
 
           if (errors.length === 0) {
             passport.authenticate(
-              "facebook",
+              'facebook',
               { session: false },
               (err, user) => {
                 if (err) {
-                  log.error("Hi! Password facebook validation on error...");
+                  log.error('Hi! Password facebook validation on error...');
                   errors.push(err);
-                  return checkEvent.emit("error", errors);
+                  return checkEvent.emit('error', errors);
                 }
 
-                log.info("Hi! Generating tokens...");
-                return checkEvent.emit("success_facebook_grant", user);
+                log.info('Hi! Generating tokens...');
+                return checkEvent.emit('success_facebook_grant', user);
               }
             )(req, res);
           }
@@ -364,21 +366,21 @@ authController.facebook = (req, res) => {
     }
 
     if (errors.length > 0) {
-      return checkEvent.emit("error", errors);
+      return checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     let status = 400;
 
-    if (err[0] === "invalid_credentials") {
+    if (err[0] === 'invalid_credentials') {
       status = 401;
     }
 
     response.error(res, status, err);
   });
 
-  checkEvent.on("success_facebook_grant", result => {
+  checkEvent.on('success_facebook_grant', (result) => {
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
@@ -389,29 +391,29 @@ authController.facebook = (req, res) => {
       userType
     );
 
-    let device = new Devices({
+    const device = new Devices({
       uuid: deviceId,
       userId: result._id,
-      userType: userType,
-      refreshToken: refreshToken,
+      userType,
+      refreshToken,
       name: deviceName,
-      ua: uaName
+      ua: uaName,
     });
 
-    device.save(err => {
+    device.save((err) => {
       if (err) {
-        let errors = [];
+        const errors = [];
         errors.push(err);
         response.error(res, 500, errors);
       }
 
       // TODO Use "let" when other model is available
-      const code = "user_authenticated";
+      const code = 'user_authenticated';
 
       response.success(res, 200, code, {
         access_token: accessToken,
-        token_type: "bearer",
-        expires_in: api().access_token.exp,
+        token_type: 'bearer',
+        expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
         refresh_token: refreshToken,
         client_id: deviceId,
         uuid: result.uuid,
@@ -420,7 +422,7 @@ authController.facebook = (req, res) => {
         firstName: result.firstName,
         lastName: result.lastName,
         methods: result.methods,
-        photo: result.photo
+        photo: result.photo,
       });
     });
   });
@@ -438,53 +440,53 @@ authController.validate = (req, res) => {
     const errors = [];
 
     if (!grantType) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      const allowedUserTypes = ["user"];
+      const allowedUserTypes = ['user'];
 
-      if (grantType === "validate") {
-        log.info("Hi! Validating token...");
+      if (grantType === 'validate') {
+        log.info('Hi! Validating token...');
 
-        const token = req.body.token;
+        const { token } = req.body;
 
         if (!token || !userType) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
-            errors.push("invalid_user_type");
+            errors.push('invalid_user_type');
           }
 
-          validateToken(token, result => {
+          validateToken(token, (result) => {
             if (result) {
-              checkEvent.emit("success_validate_grant");
+              checkEvent.emit('success_validate_grant');
             } else {
-              errors.push("invalid_access_token");
-              checkEvent.emit("error", errors);
+              errors.push('invalid_access_token');
+              checkEvent.emit('error', errors);
             }
           });
         }
       } else {
-        errors.push("invalid_grant_type");
+        errors.push('invalid_grant_type');
       }
     }
 
     if (errors.length > 0) {
-      checkEvent.emit("error", errors);
+      checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     let status = 400;
 
-    if (err[0] === "invalid_access_token") {
+    if (err[0] === 'invalid_access_token') {
       status = 401;
     }
 
     response.error(res, status, err);
   });
 
-  checkEvent.on("success_validate_grant", () => {
-    response.success(res, 200, "user_confirmed");
+  checkEvent.on('success_validate_grant', () => {
+    response.success(res, 200, 'user_confirmed');
   });
 
   checking();
@@ -500,96 +502,96 @@ authController.reset = (req, res) => {
     const errors = [];
 
     if (!grantType) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      const allowedUserTypes = ["user"];
+      const allowedUserTypes = ['user'];
 
-      if (grantType === "reset") {
-        log.info("Hi! Reseting password...");
+      if (grantType === 'reset') {
+        log.info('Hi! Reseting password...');
 
-        const token = req.body.token;
-        const password = req.body.password;
+        const { token } = req.body;
+        const { password } = req.body;
         const confirmPassword = req.body.confirm_password;
 
         if (!token || !userType || !password || !confirmPassword) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
-            errors.push("invalid_user_type");
+            errors.push('invalid_user_type');
           }
 
           if (password.length < 6) {
-            errors.push("password_too_short");
+            errors.push('password_too_short');
           }
 
           if (password !== confirmPassword) {
-            errors.push("password_must_match");
+            errors.push('password_must_match');
           }
 
           if (errors.length === 0) {
-            log.info("Hi! Validating token...");
+            log.info('Hi! Validating token...');
             validateToken(token, (result, decoded) => {
               if (result && decoded) {
                 Users.findOneByUUID(decoded.user)
-                  .then(u => {
+                  .then((u) => {
                     if (u) {
                       bcrypt.hash(password, 12, (err, hash) => {
                         if (err) throw err;
 
                         if (hash) {
                           u.local.password = hash;
-                          checkEvent.emit("success_reset_grant", u);
+                          checkEvent.emit('success_reset_grant', u);
                         } else {
-                          errors.push("invalid_credentials");
-                          checkEvent.emit("error", errors);
+                          errors.push('invalid_credentials');
+                          checkEvent.emit('error', errors);
                         }
                       });
                     } else {
-                      errors.push("invalid_credentials");
-                      checkEvent.emit("error", errors);
+                      errors.push('invalid_credentials');
+                      checkEvent.emit('error', errors);
                     }
                   })
                   .catch(() => {
-                    errors.push("invalid_access_token");
-                    checkEvent.emit("error", errors);
+                    errors.push('invalid_access_token');
+                    checkEvent.emit('error', errors);
                   });
               } else {
-                errors.push("invalid_access_token");
-                checkEvent.emit("error", errors);
+                errors.push('invalid_access_token');
+                checkEvent.emit('error', errors);
               }
             });
           }
         }
       } else {
-        errors.push("invalid_grant_type");
+        errors.push('invalid_grant_type');
       }
     }
 
     if (errors.length > 0) {
-      checkEvent.emit("error", errors);
+      checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     let status = 400;
 
-    if (err[0] === "invalid_access_token") {
+    if (err[0] === 'invalid_access_token') {
       status = 401;
     }
 
     response.error(res, status, err);
   });
 
-  checkEvent.on("success_reset_grant", result => {
-    let user = new Users(result);
-    user.save((err, u) => {
+  checkEvent.on('success_reset_grant', (result) => {
+    const user = new Users(result);
+    user.save((err) => {
       if (err) {
-        let errors = [];
+        const errors = [];
         errors.push(err);
         response.error(res, 500, errors);
       }
 
-      response.success(res, 200, "password_updated");
+      response.success(res, 200, 'password_updated');
     });
   });
 
@@ -606,69 +608,69 @@ authController.forgot = (req, res) => {
     const errors = [];
 
     if (!grantType) {
-      errors.push("missing_params");
+      errors.push('missing_params');
     } else {
-      const allowedUserTypes = ["user"];
+      const allowedUserTypes = ['user'];
 
-      if (grantType === "forgot") {
-        log.info("Hi! Send reset link password...");
+      if (grantType === 'forgot') {
+        log.info('Hi! Send reset link password...');
 
-        const email = req.body.email;
+        const { email } = req.body;
 
         if (!email || !userType) {
-          errors.push("missing_params");
+          errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
-            errors.push("invalid_user_type");
+            errors.push('invalid_user_type');
           }
 
           if (errors.length === 0) {
             Users.findOneByEmail(email)
-              .then(result => {
+              .then((result) => {
                 if (result) {
-                  checkEvent.emit("success_forgot_grant", result);
+                  checkEvent.emit('success_forgot_grant', result);
                 } else {
-                  errors.push("invalid_credentials");
-                  checkEvent.emit("error", errors);
+                  errors.push('invalid_credentials');
+                  checkEvent.emit('error', errors);
                 }
               })
               .catch(() => {
-                errors.push("invalid_credentials");
-                checkEvent.emit("error", errors);
+                errors.push('invalid_credentials');
+                checkEvent.emit('error', errors);
               });
           }
         }
       } else {
-        errors.push("invalid_grant_type");
+        errors.push('invalid_grant_type');
       }
     }
 
     if (errors.length > 0) {
-      checkEvent.emit("error", errors);
+      checkEvent.emit('error', errors);
     }
   };
 
-  checkEvent.on("error", err => {
+  checkEvent.on('error', (err) => {
     let status = 400;
 
-    if (err[0] === "invalid_credentials") {
+    if (err[0] === 'invalid_credentials') {
       status = 401;
     }
 
     response.error(res, status, err);
   });
 
-  checkEvent.on("success_forgot_grant", result => {
+  checkEvent.on('success_forgot_grant', (result) => {
     const resetToken = generateResetToken(result.uuid, userType);
-    result.link = `//${app().host}:${app().port}/reset/${resetToken}`;
+    result.link = `//${process.env.APP_HOST}:${process.env.APP_PORT}/reset/${resetToken}`;
 
     console.log(result.link);
 
-    mailer.sendResetPasswordEmail(result, (err, info) => {
-      if (err) response.error(res, 400, ["mailer_failed"]);
+    mailer.sendResetPasswordEmail(result, (err) => {
+      if (err) response.error(res, 400, ['mailer_failed']);
 
-      log.success("Hi! Reset password email sent...");
-      response.success(res, 200, "user_forgot");
+      log.success('Hi! Reset password email sent...');
+      response.success(res, 200, 'user_forgot');
     });
   });
 

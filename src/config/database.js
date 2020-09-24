@@ -1,23 +1,17 @@
 'use strict';
 
 import mongoose from 'mongoose';
-
-import { db } from '@/config/config';
 import log from '@/helpers/log';
 
-const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
+mongoose.connect(process.env.DB_URL, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+});
 
-mongoose.connect(DATABASE_URL,
-  {
-    useNewUrlParser: true,
-    useCreateIndex: true
-  }
-);
-
-const connection = mongoose.connection;
+const { connection } = mongoose;
 connection.on('error', console.error.bind(console, 'Connection error...'));
-connection.once('open', function () {
-  log.success(`Hi! Connected to the database ${db().name}`);
-}); 
+connection.once('open', () => {
+  log.success(`Hi! Connected to the database ${process.env.DB_NAME}`);
+});
 
 export default connection;

@@ -1,6 +1,6 @@
-'use strict'
+'use strict';
 
-import { Router } from 'express'
+import { Router } from 'express';
 // import { regex } from '@/helpers/validator'
 // import deviceController from '@/api/devices/device.controller'
 

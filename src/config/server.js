@@ -1,29 +1,26 @@
-"use strict";
+'use strict';
 
-import express from "express";
-import bodyParser from "body-parser";
-import expressJwt from "express-jwt";
-import mongoose from "mongoose";
+import express from 'express';
+import bodyParser from 'body-parser';
+import expressJwt from 'express-jwt';
+import mongoose from 'mongoose';
 
-import { api, db } from "@/config/config";
-// import conn from '@/config/database';
-import passport from "@/config/passport";
+import passport from '@/config/passport';
 
-import { version } from "@@/package.json";
+import { version } from '@@/package.json';
 
-import corsMidd from "@/middlewares/cors";
-import otherMidd from "@/middlewares/other";
-import authErrorMidd from "@/middlewares/authError";
+import corsMidd from '@/middlewares/cors';
+import otherMidd from '@/middlewares/other';
+import authErrorMidd from '@/middlewares/authError';
 
-import deviceRouter from "@/api/devices/device.routes";
-import userRouter from "@/api/users/user.routes";
-import matchRouter from "@/api/matches/match.routes";
-import leagueRouter from "@/api/leagues/league.routes";
-import authRouter from "@/api/auth/auth.routes";
+import deviceRouter from '@/api/devices/device.routes';
+import userRouter from '@/api/users/user.routes';
+import matchRouter from '@/api/matches/match.routes';
+import leagueRouter from '@/api/leagues/league.routes';
+import authRouter from '@/api/auth/auth.routes';
 
-// import models, { connectDb } from '@/models';
-
-import log from "@/helpers/log";
+import log from '@/helpers/log';
+import loader from '@/helpers/loader';
 
 const app = express();
 
@@ -33,7 +30,7 @@ class Server {
   }
 
   static init() {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       // Global middlewares
 
       // CORS middleware
@@ -47,7 +44,7 @@ class Server {
       // Parse from x-www-form-urlencoded, which is the universal content type
       app.use(
         bodyParser.urlencoded({
-          extended: true
+          extended: true,
         })
       );
 
@@ -57,25 +54,29 @@ class Server {
       // Auth middleware
       app.use(
         expressJwt({
-          secret: api().access_token.secret
+          secret: process.env.API_ACCESS_TOKEN_SECRET,
         }).unless({
           path: [
-            { url: `${api().version}/users`, methods: ["OPTIONS", "POST"] },
-            `${api().version}/auth`,
-            `${api().version}/auth/token`,
-            `${api().version}/auth/google/token`,
-            `${api().version}/auth/facebook/token`,
-            `${api().version}/auth/forgot`,
-            `${api().version}/auth/reset`,
-            `${api().version}/auth/validate`
-          ]
+            {
+              url: `${process.env.API_VERSION}/users`,
+              methods: ['OPTIONS', 'POST'],
+            },
+            `${process.env.API_VERSION}/auth`,
+            `${process.env.API_VERSION}/auth/token`,
+            `${process.env.API_VERSION}/auth/google/token`,
+            `${process.env.API_VERSION}/auth/facebook/token`,
+            `${process.env.API_VERSION}/auth/forgot`,
+            `${process.env.API_VERSION}/auth/reset`,
+            `${process.env.API_VERSION}/auth/validate`,
+            // `${process.env.API_VERSION}/users/test`,
+          ],
         })
       );
 
       // Middleware to handle error from authentication
       app.use(authErrorMidd);
 
-      log.title("Initialization");
+      log.title('Initialization');
       log.success(`Hi! The current env is ${process.env.NODE_ENV}`);
       log.success(`Hi! The current version is ${version}`);
 
@@ -88,18 +89,18 @@ class Server {
    * Bootstrap API
    */
   static bootstrap() {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       // Routes
-      app.use(`${api().version}/devices`, deviceRouter);
-      app.use(`${api().version}/users`, userRouter);
-      app.use(`${api().version}/matches`, matchRouter);
-      app.use(`${api().version}/leagues`, leagueRouter);
+      app.use(`${process.env.API_VERSION}/devices`, deviceRouter);
+      app.use(`${process.env.API_VERSION}/users`, userRouter);
+      app.use(`${process.env.API_VERSION}/matches`, matchRouter);
+      app.use(`${process.env.API_VERSION}/leagues`, leagueRouter);
       // Could use decentralized authorization server
-      app.use(`${api().version}/auth`, authRouter);
-      app.use(function(req, res) {
+      app.use(`${process.env.API_VERSION}/auth`, authRouter);
+      app.use((req, res) => {
         res
           .status(404)
-          .json({ status: 404, code: "not_found", error: "Not Found" });
+          .json({ status: 404, code: 'not_found', error: 'Not Found' });
       });
 
       try {
@@ -117,25 +118,27 @@ class Server {
    */
   static database() {
     return new Promise((resolve, reject) => {
-      const DATABASE_URL = `mongodb://${db().hostname}/${db().name}`;
+      loader.start();
+      log.info('Connecting to the database...');
 
-      mongoose.connect(DATABASE_URL, {
+      mongoose.connect(process.env.DB_URL, {
         useNewUrlParser: true,
         useCreateIndex: true,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
       });
 
-      const connection = mongoose.connection;
-      connection.on("error", () => {
-        log.error(`Connection error to the database ${db().name}`);
+      const { connection } = mongoose;
+      connection.on('error', () => {
+        log.error(`Connection error to the database ${process.env.DB_NAME}`);
+        loader.stop();
         reject();
       });
 
-      connection.once("open", () => {
-        log.success(`Hi! Connecting to the database ${db().name}`);
+      connection.once('open', () => {
+        log.success(`Hi! Connecting to the database ${process.env.DB_NAME}`);
+        loader.stop();
+        resolve();
       });
-
-      resolve();
     });
   }
 
@@ -144,13 +147,14 @@ class Server {
    */
   static listen() {
     return new Promise((resolve, reject) => {
-      this.server = app.listen(api().port, err => {
+      this.server = app.listen(process.env.API_PORT, (err) => {
         if (err) {
-          reject({ type: "error", obj: err });
+          // eslint-disable-next-line prefer-promise-reject-errors
+          reject({ type: 'error', obj: err });
           return;
         }
 
-        log.success(`Server is listening on ${api().port}`);
+        log.success(`Server is listening on ${process.env.API_PORT}`);
         resolve();
       });
     });

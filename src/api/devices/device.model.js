@@ -4,7 +4,12 @@ const DevicesSchema = new mongoose.Schema(
   {
     id: Number,
 
-    uuid: { type: String, required: true, unique: true, index: true },
+    uuid: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
 
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
 
@@ -19,14 +24,14 @@ const DevicesSchema = new mongoose.Schema(
     name: {
       type: String,
       lowercase: true,
-      required: true
+      required: true,
     },
 
     ua: {
       type: String,
       lowercase: true,
-      required: true
-    }
+      required: true,
+    },
   },
   { timestamps: true }
 );

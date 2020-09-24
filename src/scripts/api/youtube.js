@@ -2,60 +2,42 @@ import fs from 'fs';
 import readline from 'readline';
 import path from 'path';
 import { google } from 'googleapis';
-var OAuth2 = google.auth.OAuth2;
-
-import { youtube } from '@/config/config';
 import log from '@/helpers/log';
+
+const { OAuth2 } = google.auth;
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 const TOKEN_DIR = path.join(__dirname);
-const TOKEN_PATH = TOKEN_DIR + '/token.json';
+const TOKEN_PATH = `${TOKEN_DIR}/token.json`;
 
-async function videoFromChannel(channelId, query, gameStartTime) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const auth = await authorize();
-      const videos = await searchChannel(auth, channelId, query, gameStartTime);
-      resolve(videos.data);
-    } catch (error) {
-      reject(error);
+function storeToken(token) {
+  try {
+    fs.mkdirSync(TOKEN_DIR);
+  } catch (err) {
+    if (err.code !== 'EEXIST') {
+      throw err;
     }
+  }
+  fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+    if (err) throw err;
+    log.success(`Token stored to ${TOKEN_PATH}`);
   });
-}
-
-function authorize() {
-  return new Promise((resolve, reject) => {
-    const clientSecret = youtube().client_secret;
-    const clientId = youtube().client_id;
-    const redirectUrl = youtube().redirect_uri;
-    const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
-
-    // Check if we have previously stored a token.
-    fs.readFile(TOKEN_PATH, function(err, token) {
-      if (err) {
-        log.error(err);
-        getNewToken(oauth2Client, () => resolve(oauth2Client));
-      } else {
-        oauth2Client.credentials = JSON.parse(token);
-        resolve(oauth2Client);
-      }
-    });
-  });
+  log.success(`Token stored to ${TOKEN_PATH}`);
 }
 
 function getNewToken(oauth2Client, callback) {
-  var authUrl = oauth2Client.generateAuthUrl({
+  const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: SCOPES
+    scope: SCOPES,
   });
   log.default('Authorize this app by visiting this url: ', authUrl);
-  var rl = readline.createInterface({
+  const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
-  rl.question('Enter the code from that page here: ', function(code) {
+  rl.question('Enter the code from that page here: ', (code) => {
     rl.close();
-    oauth2Client.getToken(code, function(err, token) {
+    oauth2Client.getToken(code, (err, token) => {
       if (err) {
         log.error('Error while trying to retrieve access token', err);
         return;
@@ -67,19 +49,24 @@ function getNewToken(oauth2Client, callback) {
   });
 }
 
-function storeToken(token) {
-  try {
-    fs.mkdirSync(TOKEN_DIR);
-  } catch (err) {
-    if (err.code != 'EEXIST') {
-      throw err;
-    }
-  }
-  fs.writeFile(TOKEN_PATH, JSON.stringify(token), err => {
-    if (err) throw err;
-    log.success('Token stored to ' + TOKEN_PATH);
+function authorize() {
+  return new Promise((resolve) => {
+    const clientId = process.env.API_YOUTUBE_CLIENT_ID;
+    const clientSecret = process.env.API_YOUTUBE_CLIENT_SECRET;
+    const redirectUrl = process.env.API_YOUTUBE_REDIRECT_URI;
+    const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
+
+    // Check if we have previously stored a token.
+    fs.readFile(TOKEN_PATH, (err, token) => {
+      if (err) {
+        log.error(err);
+        getNewToken(oauth2Client, () => resolve(oauth2Client));
+      } else {
+        oauth2Client.credentials = JSON.parse(token);
+        resolve(oauth2Client);
+      }
+    });
   });
-  log.success('Token stored to ' + TOKEN_PATH);
 }
 
 function searchChannel(auth, channelId, q, publishedAfter) {
@@ -97,7 +84,7 @@ function searchChannel(auth, channelId, q, publishedAfter) {
         order: 'viewCount',
         maxResults: '50',
         publishedAfter,
-        q
+        q,
       },
       (err, response) => {
         if (err) {
@@ -111,6 +98,18 @@ function searchChannel(auth, channelId, q, publishedAfter) {
   });
 }
 
+async function videoFromChannel(channelId, query, gameStartTime) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const auth = await authorize();
+      const videos = await searchChannel(auth, channelId, query, gameStartTime);
+      resolve(videos.data);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 module.exports = {
-  videoFromChannel
+  videoFromChannel,
 };

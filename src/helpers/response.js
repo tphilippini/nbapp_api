@@ -1,42 +1,50 @@
-"use strict";
-
-import { api } from "@/config/config";
+'use strict';
 
 const response = {};
 
 response.success = (res, status, code, ...data) => {
-  let message = "";
+  let message = '';
 
-  if (code === "user_added") message = "L'utilisateur a été ajouté avec succès";
-  if (code === "user_authenticated")
+  if (code === 'user_added') message = "L'utilisateur a été ajouté avec succès";
+  if (code === 'user_authenticated') {
     message = "L'utilisateur a été authentifié avec succès";
-  if (code === "user_confirmed")
+  }
+  if (code === 'user_confirmed') {
     message = "L'utilisateur a été confirmé avec succès";
-  if (code === "user_updated")
+  }
+  if (code === 'user_updated') {
     message = "L'utilisateur a été modifié avec succès";
-  if (code === "password_updated")
-    message = "Le mot de passe a été modifié avec succès";
-  if (code === "tokens_updated")
-    message = "Les tokens ont été mis à jour avec succès";
-  if (code === "device_revoked")
+  }
+  if (code === 'password_updated') {
+    message = 'Le mot de passe a été modifié avec succès';
+  }
+  if (code === 'tokens_updated') {
+    message = 'Les tokens ont été mis à jour avec succès';
+  }
+  if (code === 'device_revoked') {
     message =
       "L'accès à l'application pour cet appareil a été révoqué avec succès";
-  if (code === "device_name_changed")
+  }
+  if (code === 'device_name_changed') {
     message = "Le nom de l'appareil a été modifié avec succès";
+  }
 
-  if (code === "result_found")
-    message = "Un ou plusieurs résultats ont été trouvé avec succès";
-  if (code === "user_forgot")
+  if (code === 'result_found') {
+    message = 'Un ou plusieurs résultats ont été trouvé avec succès';
+  }
+  if (code === 'user_forgot') {
     message =
-      "Un email pour réinitialiser votre mot de passe a été envoyé avec succès";
-  if (code === "result_empty") message = "Aucun résultat n'a été trouvé";
+      'Un email pour réinitialiser votre mot de passe a été envoyé avec succès';
+  }
+  if (code === 'result_empty') message = "Aucun résultat n'a été trouvé";
+  if (code === 'league_added') message = 'La ligue a été ajouté avec succès';
 
   const success = {
     success: true,
     status,
     message,
     code,
-    data
+    data,
   };
 
   // if (data.length === 0) {
@@ -48,7 +56,7 @@ response.success = (res, status, code, ...data) => {
 };
 
 response.successAdd = (res, code, location, data) => {
-  res.location(api().version + location);
+  res.location(process.env.API_VERSION + location);
 
   response.success(res, 201, code, data);
 };
@@ -57,83 +65,104 @@ response.error = (res, status, errors = []) => {
   if (errors.length > 0) {
     const tab = [];
 
-    errors.forEach(error => {
-      if (error === "missing_params")
+    errors.forEach((error) => {
+      if (error === 'missing_params') {
         tab.push({
-          message: "Un ou plusieurs paramètre(s) est / sont manquant(s)",
-          code: error
+          message: 'Un ou plusieurs paramètre(s) est / sont manquant(s)',
+          code: error,
         });
-      if (error === "too_many_params")
+      }
+      if (error === 'too_many_params') {
         tab.push({
-          message: "Trop de paramètres ont été envoyés",
-          code: error
+          message: 'Trop de paramètres ont été envoyés',
+          code: error,
         });
-      if (error === "mailer_failed")
+      }
+      if (error === 'mailer_failed') {
         tab.push({
-          message: "Envoi du mail invalide",
-          code: error
+          message: 'Envoi du mail invalide',
+          code: error,
         });
-      if (error === "invalid_param_value")
+      }
+      if (error === 'invalid_param_value') {
         tab.push({
           message:
             "Valeur(s) d'un ou plusieurs paramètre est / sont invalide(s)",
-          code: error
+          code: error,
         });
-      if (error === "invalid_phone_number")
-        tab.push({ message: "Numéro de téléphone invalide", code: error });
-      if (error === "invalid_email_address")
-        tab.push({ message: "Adresse email invalide", code: error });
-      if (error === "alias_too_short")
+      }
+      if (error === 'invalid_phone_number') {
+        tab.push({ message: 'Numéro de téléphone invalide', code: error });
+      }
+      if (error === 'invalid_email_address') {
+        tab.push({ message: 'Adresse email invalide', code: error });
+      }
+      if (error === 'alias_too_short') {
         tab.push({
-          message: "Alias trop court (4 caractères minimum)",
-          code: error
+          message: 'Alias trop court (4 caractères minimum)',
+          code: error,
         });
-      if (error === "password_too_short")
+      }
+      if (error === 'password_too_short') {
         tab.push({
-          message: "Mot de passe trop court (6 caractères minimum)",
-          code: error
+          message: 'Mot de passe trop court (6 caractères minimum)',
+          code: error,
         });
-      if (error === "password_must_match")
+      }
+      if (error === 'password_must_match') {
         tab.push({
-          message: "Les mots de passe doivent être identique",
-          code: error
+          message: 'Les mots de passe doivent être identique',
+          code: error,
         });
-      if (error === "new_password_too_short")
+      }
+      if (error === 'new_password_too_short') {
         tab.push({
-          message: "Nouveau mot de passe trop court (6 caractères minimum)",
-          code: error
+          message: 'Nouveau mot de passe trop court (6 caractères minimum)',
+          code: error,
         });
-      if (error === "email_address_already_taken")
+      }
+      if (error === 'email_address_already_taken') {
         tab.push({
-          message: "Cette adresse email est déjà existante",
-          code: error
+          message: 'Cette adresse email est déjà existante',
+          code: error,
         });
-      if (error === "alias_already_taken")
-        tab.push({ message: "Cet alias est déjà existant", code: error });
-      if (error === "invalid_user_type")
+      }
+      if (error === 'alias_already_taken') {
+        tab.push({ message: 'Cet alias est déjà existant', code: error });
+      }
+      if (error === 'invalid_user_type') {
         tab.push({ message: "Type d'utilisateur invalide", code: error });
-      if (error === "invalid_grant_type")
-        tab.push({ message: "Type du grant invalide", code: error });
-      if (error === "invalid_credentials")
-        tab.push({ message: "Identifiants invalides", code: error });
-      if (error === "invalid_access_token")
+      }
+      if (error === 'invalid_grant_type') {
+        tab.push({ message: 'Type du grant invalide', code: error });
+      }
+      if (error === 'invalid_credentials') {
+        tab.push({ message: 'Identifiants invalides', code: error });
+      }
+      if (error === 'invalid_access_token') {
         tab.push({ message: "Token d'accès invalide", code: error });
-      if (error === "invalid_refresh_token")
+      }
+      if (error === 'invalid_refresh_token') {
         tab.push({
-          message: "Token de rafraîchissement invalide",
-          code: error
+          message: 'Token de rafraîchissement invalide',
+          code: error,
         });
-      if (error === "invalid_client")
-        tab.push({ message: "Client invalide", code: error });
-      if (error === "invalid_method")
-        tab.push({ message: "Méthode invalide", code: error });
-      if (error === "insufficient_rights")
-        tab.push({ message: "Droits insuffisants", code: error });
-      if (error === "the_device_does_not_belong_to_the_user")
+      }
+      if (error === 'invalid_client') {
+        tab.push({ message: 'Client invalide', code: error });
+      }
+      if (error === 'invalid_method') {
+        tab.push({ message: 'Méthode invalide', code: error });
+      }
+      if (error === 'insufficient_rights') {
+        tab.push({ message: 'Droits insuffisants', code: error });
+      }
+      if (error === 'the_device_does_not_belong_to_the_user') {
         tab.push({
           message: "Cet appareil n'existe pas ou n'est plus valide",
-          code: error
+          code: error,
         });
+      }
     });
 
     errors = tab;
@@ -142,7 +171,7 @@ response.error = (res, status, errors = []) => {
   const error = {
     success: false,
     status,
-    errors
+    errors,
   };
 
   res.status(status);
