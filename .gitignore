@@ -1,7 +1,5 @@
 node_modules
-/src/scripts/api/client_secret.json
-/src/scripts/api/token.json
-/src/tests/coverage/
+src/tests/coverage/
 dist
 .env
 .vscode
