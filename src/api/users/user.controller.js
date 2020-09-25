@@ -46,7 +46,6 @@ userController.post = (req, res) => {
       }
 
       if (errors.length === 0) {
-        console.log(email);
         Users.findOneByEmail(email)
           .then((result) => {
             if (result) {
