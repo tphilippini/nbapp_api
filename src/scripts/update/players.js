@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { forEachSeries } from 'p-iteration';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import log from '@/helpers/log';
 import Teams from '@/api/teams/team.model';
@@ -37,10 +37,10 @@ async function grabPlayerNames() {
       playerToSave.heightMeters = player.heightMeters;
       playerToSave.weight = player.weightPounds;
       playerToSave.weightKgs = player.weightKilograms;
-      playerToSave.birthdate = moment(player.dateOfBirthUTC).format(
+      playerToSave.birthdate = dayjs(player.dateOfBirthUTC).format(
         'MMM DD, YYYY'
       );
-      playerToSave.age = moment().diff(player.dateOfBirthUTC, 'years');
+      playerToSave.age = dayjs().diff(player.dateOfBirthUTC, 'years');
       playerToSave.playerId = player.personId;
       playerToSave.teamId = team.teamId;
       playerToSave.teamName = team.teamName;
@@ -68,8 +68,8 @@ async function grabPlayerNames() {
         heightMeters: player.heightMeters,
         weight: player.weightPounds,
         weightKgs: player.weightKilograms,
-        birthdate: moment(player.dateOfBirthUTC).format('MMM DD, YYYY'),
-        age: moment().diff(player.dateOfBirthUTC, 'years'),
+        birthdate: dayjs(player.dateOfBirthUTC).format('MMM DD, YYYY'),
+        age: dayjs().diff(player.dateOfBirthUTC, 'years'),
         playerId: player.personId,
         teamId: team.teamId,
         teamName: team.teamName,
@@ -124,7 +124,7 @@ mongoose.connect(
     log.info(`Connected to the database ${process.env.DB_NAME}`);
 
     log.title('Main');
-    main(connection).then(() => {
+    main().then(() => {
       log.info('Closed database connection');
       connection.close();
       // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);

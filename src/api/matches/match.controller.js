@@ -1,12 +1,12 @@
 'use strict';
 
 import EventEmitter from 'events';
-import moment from 'moment';
 
 import Matches from '@/api/matches/match.model';
 
 import log from '@/helpers/log';
 import response from '@/helpers/response';
+import { isValidDate } from '@/helpers/validator';
 
 const matchController = {};
 
@@ -22,7 +22,7 @@ matchController.matchByDate = (req, res) => {
     if (!date) {
       errors.push('missing_params');
     } else {
-      if (!moment(date).isValid()) {
+      if (!isValidDate(date, 'YYYYMMDD')) {
         errors.push('invalid_param_value');
       }
 

@@ -6,7 +6,6 @@
 import UUID from 'uuid';
 import { isUUID } from 'validator';
 import EventEmitter from 'events';
-// import moment from 'moment';
 
 import Users from '@/api/users/user.model';
 import Leagues from '@/api/leagues/league.model';

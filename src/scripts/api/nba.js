@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import axios from 'axios';
 import log from '@/helpers/log';
 import { sum } from '@/helpers/utils';
@@ -51,7 +51,7 @@ async function findTodayMatches(date) {
 async function findTeams() {
   return new Promise(async (resolve, reject) => {
     try {
-      // const uri = `https://data.nba.net/prod/v2/${moment().format(
+      // const uri = `https://data.nba.net/prod/v2/${dayjs().format(
       //   "Y"
       // )}/teams.json`;
       const uri = 'https://data.nba.net/prod/v2/2019/teams.json';
@@ -110,7 +110,7 @@ async function checkGameStatus(matches) {
       if (match.statusNum === 3) {
         // game is over
         // check how many hours ago it ended
-        const postGameHours = moment().diff(moment(match.endTimeUTC), 'hours');
+        const postGameHours = dayjs().diff(dayjs(match.endTimeUTC), 'hours');
         if (postGameHours > '12') {
           over.push(match);
         } else {

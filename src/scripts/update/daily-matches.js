@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import moment from 'moment';
+import dayjs from 'dayjs';
 import mongoose from 'mongoose';
 import axios from 'axios';
 import { forEachSeries } from 'p-iteration';
@@ -81,7 +81,7 @@ async function saveStats(match, stats) {
   );
 }
 
-async function main(connection, dateFormatted) {
+async function main(dateFormatted) {
   return new Promise(async (resolve) => {
     // MATCHES
     log.info('Finding today matches...');
@@ -276,10 +276,10 @@ mongoose.connect(
     log.title('Main');
     // grab todays games and continue to update
     const todayDate =
-      moment().hours() < 16
-        ? moment().subtract(1, 'd').format('YYYYMMDD')
-        : moment().format('YYYYMMDD');
-    main(connection, todayDate).then(() => {
+      dayjs().hour() < 16
+        ? dayjs().subtract(1, 'd').format('YYYYMMDD')
+        : dayjs().format('YYYYMMDD');
+    main(todayDate).then(() => {
       log.info('----------------------------------');
       log.info('Closed database connection');
       connection.close();

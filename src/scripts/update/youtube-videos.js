@@ -1,6 +1,6 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-underscore-dangle */
-import moment from 'moment';
+import dayjs from 'dayjs';
 import mongoose from 'mongoose';
 import { forEachSeries } from 'p-iteration';
 
@@ -19,14 +19,8 @@ require('dotenv').config();
 const limitHours = 18;
 
 function matchNotFresh(endTimeUTC) {
-  // Average UTC time in US
-  const now = moment().subtract('hours');
-  // server time is UTC +0 hours
-  const end = moment(endTimeUTC);
-  // Time since game end
-  const duration = moment.duration(now.diff(end));
-  const hours = duration.asHours();
-  // log.default(`Time since match ended: ${hours}`);
+  const hours = dayjs().diff(dayjs(endTimeUTC), 'hours');
+  log.default(`Time since match ended: ${hours}`);
   return hours > limitHours;
 }
 
@@ -261,7 +255,7 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
             const videos = await videoFromChannel(
               channelId,
               `"${hTeam.teamName}"|"${hTeam.teamShortName}"|"${vTeam.teamName}"|"${vTeam.teamShortName}"`,
-              moment(match.startTimeUTCString).toISOString()
+              dayjs(match.startTimeUTCString).toISOString()
             );
             log.success(`Found ${videos.items.length} videos.`);
 
@@ -277,7 +271,7 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
             const videos = await videoFromChannel(
               channelId,
               `"${hTeam.teamName}"|"${hTeam.teamShortName}"|"${vTeam.teamName}"|"${vTeam.teamShortName}"`,
-              moment(match.startTimeUTCString).toISOString()
+              dayjs(match.startTimeUTCString).toISOString()
             );
             log.success(`Found ${videos.items.length} videos.`);
 
@@ -303,7 +297,7 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
   });
 }
 
-async function main(connection, dateFormatted) {
+async function main(dateFormatted) {
   return new Promise(async (resolve) => {
     // YOUTUBE VIDEOS UPDATE
     await forEachSeries(ytChannel, async (channel) => {
@@ -333,8 +327,8 @@ mongoose.connect(
 
     log.title('Main');
     // grab todays games and continue to update
-    const todayDate = moment().subtract(1, 'd').format('YYYYMMDD');
-    main(connection, todayDate).then(() => {
+    const todayDate = dayjs().subtract(1, 'd').format('YYYYMMDD');
+    main(todayDate).then(() => {
       log.info('----------------------------------');
       log.info('Closed database connection');
       connection.close();
