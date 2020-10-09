@@ -4,6 +4,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
+import cors from 'cors';
 
 import passport from '@/config/passport';
 
@@ -31,6 +33,9 @@ class Server {
   static init() {
     return new Promise(async (resolve) => {
       // Global middlewares
+
+      app.use(helmet());
+      app.use(cors());
 
       // CORS middleware
       app.use(corsMidd);
