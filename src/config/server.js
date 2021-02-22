@@ -22,6 +22,7 @@ import leagueRouter from '@/api/leagues/league.routes';
 import authRouter from '@/api/auth/auth.routes';
 
 import log from '@/helpers/log';
+import '@/scripts/cron';
 
 const app = express();
 
