@@ -2,7 +2,7 @@
 
 import express from 'express';
 import bodyParser from 'body-parser';
-import expressJwt from 'express-jwt';
+// import expressJwt from 'express-jwt';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -13,7 +13,7 @@ import { version } from '@@/package.json';
 
 import corsMidd from '@/middlewares/cors';
 import otherMidd from '@/middlewares/other';
-import authErrorMidd from '@/middlewares/authError';
+// import authErrorMidd from '@/middlewares/authError';
 
 import deviceRouter from '@/api/devices/device.routes';
 import userRouter from '@/api/users/user.routes';
@@ -57,29 +57,29 @@ class Server {
       app.use(passport.initialize());
 
       // Auth middleware
-      app.use(
-        expressJwt({
-          secret: process.env.API_ACCESS_TOKEN_SECRET,
-        }).unless({
-          path: [
-            {
-              url: `${process.env.API_VERSION}/users`,
-              methods: ['OPTIONS', 'POST'],
-            },
-            `${process.env.API_VERSION}/auth`,
-            `${process.env.API_VERSION}/auth/token`,
-            `${process.env.API_VERSION}/auth/google/token`,
-            `${process.env.API_VERSION}/auth/facebook/token`,
-            `${process.env.API_VERSION}/auth/forgot`,
-            `${process.env.API_VERSION}/auth/reset`,
-            `${process.env.API_VERSION}/auth/validate`,
-            // `${process.env.API_VERSION}/users/test`,
-          ],
-        })
-      );
+      // app.use(
+      //   expressJwt({
+      //     secret: process.env.API_ACCESS_TOKEN_SECRET,
+      //   }).unless({
+      //     path: [
+      //       {
+      //         url: `${process.env.API_VERSION}/users`,
+      //         methods: ['OPTIONS', 'POST'],
+      //       },
+      //       `${process.env.API_VERSION}/auth`,
+      //       `${process.env.API_VERSION}/auth/token`,
+      //       `${process.env.API_VERSION}/auth/google/token`,
+      //       `${process.env.API_VERSION}/auth/facebook/token`,
+      //       `${process.env.API_VERSION}/auth/forgot`,
+      //       `${process.env.API_VERSION}/auth/reset`,
+      //       `${process.env.API_VERSION}/auth/validate`,
+      //       // `${process.env.API_VERSION}/users/test`,
+      //     ],
+      //   })
+      // );
 
       // Middleware to handle error from authentication
-      app.use(authErrorMidd);
+      // app.use(authErrorMidd);
 
       log.title('Initialization');
       log.success(`Hi! The current env is ${process.env.NODE_ENV}`);
