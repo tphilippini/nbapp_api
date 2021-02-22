@@ -2,14 +2,14 @@
 
 import { Router } from 'express';
 import matchController from '@/api/matches/match.controller';
-import userGuardMidd from '@/middlewares/userGuard';
+// import userGuardMidd from '@/middlewares/userGuard';
 import { regex } from '@/helpers/validator';
 
 const matchRouter = Router();
 
 matchRouter.get(
   `/:startDate(${regex.date.yyyymmdd})`,
-  userGuardMidd,
+  // userGuardMidd,
   matchController.matchByDate
 );
 
