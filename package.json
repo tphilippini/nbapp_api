@@ -41,7 +41,7 @@
     "googleapis": "^41.0.1",
     "helmet": "^4.1.1",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.9.25",
+    "mongoose": "^5.11.15",
     "mysql": "^2.18.1",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.4.17",
