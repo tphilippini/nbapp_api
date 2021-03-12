@@ -54,7 +54,7 @@ async function findTeams() {
       // const uri = `https://data.nba.net/prod/v2/${dayjs().format(
       //   "Y"
       // )}/teams.json`;
-      const uri = 'https://data.nba.net/prod/v2/2019/teams.json';
+      const uri = 'https://data.nba.net/prod/v2/2020/teams.json';
       log.success(uri);
       const teams = await axios.get(uri);
       resolve(teams.data.league.standard);
@@ -71,7 +71,7 @@ async function checkTeamRoster(teamShortName) {
       // const uri = `https://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`;
       // /prod/v1/2019/teams/{{teamUrlCode}}/roster.json
       // https://data.nba.net/prod/v1/2019/players.json
-      const uri = `https://data.nba.net/data/json/cms/2019/team/${teamShortName}/roster.json`;
+      const uri = `https://data.nba.net/data/json/cms/2020/team/${teamShortName}/roster.json`;
       log.success(uri);
       const roster = await axios.get(uri);
       resolve(roster.data.sports_content.roster.players.player);
@@ -88,7 +88,7 @@ async function checkPlayers() {
       // const uri = `https://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`;
       // /prod/v1/2019/teams/{{teamUrlCode}}/roster.json
       // https://data.nba.net/prod/v1/2019/players.json
-      const uri = 'https://data.nba.net/prod/v1/2019/players.json';
+      const uri = 'https://data.nba.net/prod/v1/2020/players.json';
       log.success(uri);
       const roster = await axios.get(uri);
       resolve(roster.data.league.standard);
@@ -130,6 +130,38 @@ async function checkGameStatus(matches) {
       over,
       overRecent,
     });
+  });
+}
+
+async function checkBoxScore(dateFormatted, gameId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // A tester : http://data.nba.net/10s/prod/v1/20210126/0022000268_boxscore.json
+      // Example : https://nlnbamdnyc-a.akamaihd.net/fs/nba/feeds_s2012/stats/2019/boxscore/0041900205.js WORKS !!!
+      // const url = `https://nlnbamdnyc-a.akamaihd.net/fs/nba/feeds_s2012/stats/2020/boxscore/${game.gameId}.js`;
+      const uri = `http://data.nba.net/10s/prod/v1/${dateFormatted}/${gameId}_boxscore.json`;
+      log.success(uri);
+      const boxscore = await axios.get(uri);
+      resolve(boxscore.data);
+    } catch (error) {
+      log.error(error);
+      reject(error);
+    }
+  });
+}
+
+async function findPlayerLatestStats(playerId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const uri = `http://data.nba.net/data/10s/prod/v1/2020/players/${playerId}_profile.json`;
+      log.success(uri);
+      const profile = await axios.get(uri);
+      const { latest } = profile.data.league.standard.stats;
+      resolve(latest);
+    } catch (error) {
+      log.error(error);
+      reject(error);
+    }
   });
 }
 
@@ -216,6 +248,8 @@ export {
   checkGameStatus,
   checkTeamRoster,
   checkPlayers,
+  checkBoxScore,
+  findPlayerLatestStats,
   calcEfficiency,
   calcNotation,
 };

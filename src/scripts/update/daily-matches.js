@@ -1,7 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
 import mongoose from 'mongoose';
-import axios from 'axios';
 import { forEachSeries } from 'p-iteration';
 
 import log from '@/helpers/log';
@@ -11,7 +10,7 @@ import Players from '@/api/players/player.model';
 import Teams from '@/api/teams/team.model';
 import MatchesStats from '@/api/matches-stats/match-stats.model';
 
-import { findTodayMatches } from '@/scripts/api/nba';
+import { findTodayMatches, checkBoxScore } from '@/scripts/api/nba';
 
 require('dotenv').config();
 
@@ -22,17 +21,29 @@ async function saveStats(match, stats) {
       // eslint-disable-next-line implicit-arrow-linebreak
       new Promise(async (resolve) => {
         // find the player
-        const player = await Players.findOne({ playerId: stat.id });
+        const player = await Players.findOne({ playerId: stat.personId });
         // find the stats
         const existingMatchStat = await MatchesStats.findOne({
-          playerIdFull: stat.id,
+          playerIdFull: stat.personId,
           matchIdFull: match.matchId,
         });
 
         if (existingMatchStat) {
           log.info('----------------------------------');
           log.info('MatchStat exists, updating the record now...');
-          existingMatchStat.statsJSON = stat;
+          existingMatchStat.statsJSON = {
+            p: parseInt(stat.points, 10),
+            a: parseInt(stat.assists, 10),
+            or: parseInt(stat.offReb, 10),
+            dr: parseInt(stat.defReb, 10),
+            b: parseInt(stat.blocks, 10),
+            min: stat.min,
+            s: parseInt(stat.steals, 10),
+            fgm: parseInt(stat.fgm, 10),
+            fga: parseInt(stat.fga, 10),
+            tm: parseInt(stat.tpm, 10),
+            ta: parseInt(stat.tpa, 10),
+          };
           try {
             const existingMatchStatPlayer = new MatchesStats(existingMatchStat);
             await existingMatchStatPlayer
@@ -51,8 +62,20 @@ async function saveStats(match, stats) {
           log.info('MatchStat doesnt exist, creating new record now...');
           const matchStat = {
             matchIdFull: match.matchId,
-            playerIdFull: stat.id,
-            statsJSON: stat,
+            playerIdFull: stat.personId,
+            statsJSON: {
+              p: parseInt(stat.points, 10),
+              a: parseInt(stat.assists, 10),
+              or: parseInt(stat.offReb, 10),
+              dr: parseInt(stat.defReb, 10),
+              b: parseInt(stat.blocks, 10),
+              min: stat.min,
+              s: parseInt(stat.steals, 10),
+              fgm: parseInt(stat.fgm, 10),
+              fga: parseInt(stat.fga, 10),
+              tm: parseInt(stat.tpm, 10),
+              ta: parseInt(stat.tpa, 10),
+            },
             player,
             match,
           };
@@ -205,8 +228,7 @@ async function main(dateFormatted) {
         const existingMatch = await Matches.findOne({
           matchId: game.gameId,
         });
-        const url = `https://nlnbamdnyc-a.akamaihd.net/fs/nba/feeds_s2012/stats/2019/boxscore/${game.gameId}.js`;
-        // log.success(url);
+
         // if match exists and has started or is over
         if (
           existingMatch &&
@@ -218,21 +240,21 @@ async function main(dateFormatted) {
           );
           log.info('Match exists, updating the record now...');
 
-          const result = await axios.get(url);
-          const statJSON = JSON.parse(result.data.split('var g_boxscore=')[1]);
-          const homeTeamStats = statJSON.stats.home.players;
-          const awayTeamStats = statJSON.stats.visitor.players;
-
+          const result = await checkBoxScore(dateFormatted, game.gameId);
           log.info('Saving players stats...');
-          await saveStats(existingMatch, [...homeTeamStats, ...awayTeamStats]);
+          await saveStats(existingMatch, result.stats.activePlayers);
 
-          existingMatch.gameClock = statJSON.score.periodTime.gameClock;
-          existingMatch.hTeamScore = statJSON.score.home.score;
-          existingMatch.vTeamScore = statJSON.score.visitor.score;
+          existingMatch.gameClock = result.basicGameData.clock;
+          existingMatch.hTeamScore = result.basicGameData.hTeam.score;
+          existingMatch.vTeamScore = result.basicGameData.vTeam.score;
 
           // update the quarter scores
-          existingMatch.hTeamQScore = statJSON.score.home.qScore;
-          existingMatch.vTeamQScore = statJSON.score.visitor.qScore;
+          existingMatch.hTeamQScore = result.basicGameData.hTeam.linescore.map(
+            (item) => item.score
+          );
+          existingMatch.vTeamQScore = result.basicGameData.vTeam.linescore.map(
+            (item) => item.score
+          );
 
           try {
             const data = new Matches(existingMatch);
@@ -257,33 +279,38 @@ async function main(dateFormatted) {
   });
 }
 
-mongoose.connect(
-  process.env.DB_URL,
-  {
+(async () => {
+  mongoose.connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
-  },
-  (error, connection) => {
-    if (error) {
-      log.error(`Connection error to the database ${process.env.DB_NAME}`);
-      return;
+  });
+
+  log.title('Initialization');
+  const { connection } = mongoose;
+  connection.once('open', () => {
+    log.success(`Hi! Connecting to the database ${process.env.DB_NAME}`);
+  });
+  connection.on('error', (err) => {
+    log.error(`Connection error to the database ${process.env.DB_NAME}`);
+    if (err) {
+      log.default(err.message);
     }
+    process.exit(1);
+  });
 
-    log.title('Initialization');
-    log.info(`Connected to the database ${process.env.DB_NAME}`);
+  log.title('Main');
+  // grab todays games and continue to update
+  const todayDate =
+    dayjs().hour() < 18
+      ? dayjs().subtract(1, 'd').format('YYYYMMDD')
+      : dayjs().format('YYYYMMDD');
+  log.info(`Running matches on ${todayDate}`);
 
-    log.title('Main');
-    // grab todays games and continue to update
-    const todayDate =
-      dayjs().hour() < 16
-        ? dayjs().subtract(1, 'd').format('YYYYMMDD')
-        : dayjs().format('YYYYMMDD');
-    main(todayDate).then(() => {
-      log.info('----------------------------------');
-      log.info('Closed database connection');
-      connection.close();
-      // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
-    });
-  }
-);
+  await main(todayDate).then(() => {
+    log.info('----------------------------------');
+    log.info('Closed database connection');
+  });
+
+  connection.close();
+})();
