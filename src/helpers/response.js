@@ -32,6 +32,9 @@ response.success = (res, status, code, ...data) => {
   if (code === 'result_found') {
     message = 'Un ou plusieurs résultats ont été trouvé avec succès';
   }
+  if (code === 'user_welcome') {
+    message = 'Welcome on Nba App API';
+  }
   if (code === 'user_forgot') {
     message =
       'Un email pour réinitialiser votre mot de passe a été envoyé avec succès';
@@ -66,102 +69,161 @@ response.error = (res, status, errors = []) => {
     const tab = [];
 
     errors.forEach((error) => {
-      if (error === 'missing_params') {
-        tab.push({
-          message: 'Un ou plusieurs paramètre(s) est / sont manquant(s)',
-          code: error,
-        });
-      }
-      if (error === 'too_many_params') {
-        tab.push({
-          message: 'Trop de paramètres ont été envoyés',
-          code: error,
-        });
-      }
-      if (error === 'mailer_failed') {
-        tab.push({
-          message: 'Envoi du mail invalide',
-          code: error,
-        });
-      }
-      if (error === 'invalid_param_value') {
-        tab.push({
-          message:
-            "Valeur(s) d'un ou plusieurs paramètre est / sont invalide(s)",
-          code: error,
-        });
-      }
-      if (error === 'invalid_phone_number') {
-        tab.push({ message: 'Numéro de téléphone invalide', code: error });
-      }
-      if (error === 'invalid_email_address') {
-        tab.push({ message: 'Adresse email invalide', code: error });
-      }
-      if (error === 'alias_too_short') {
-        tab.push({
-          message: 'Alias trop court (4 caractères minimum)',
-          code: error,
-        });
-      }
-      if (error === 'password_too_short') {
-        tab.push({
-          message: 'Mot de passe trop court (6 caractères minimum)',
-          code: error,
-        });
-      }
-      if (error === 'password_must_match') {
-        tab.push({
-          message: 'Les mots de passe doivent être identique',
-          code: error,
-        });
-      }
-      if (error === 'new_password_too_short') {
-        tab.push({
-          message: 'Nouveau mot de passe trop court (6 caractères minimum)',
-          code: error,
-        });
-      }
-      if (error === 'email_address_already_taken') {
-        tab.push({
-          message: 'Cette adresse email est déjà existante',
-          code: error,
-        });
-      }
-      if (error === 'alias_already_taken') {
-        tab.push({ message: 'Cet alias est déjà existant', code: error });
-      }
-      if (error === 'invalid_user_type') {
-        tab.push({ message: "Type d'utilisateur invalide", code: error });
-      }
-      if (error === 'invalid_grant_type') {
-        tab.push({ message: 'Type du grant invalide', code: error });
-      }
-      if (error === 'invalid_credentials') {
-        tab.push({ message: 'Identifiants invalides', code: error });
-      }
-      if (error === 'invalid_access_token') {
-        tab.push({ message: "Token d'accès invalide", code: error });
-      }
-      if (error === 'invalid_refresh_token') {
-        tab.push({
-          message: 'Token de rafraîchissement invalide',
-          code: error,
-        });
-      }
-      if (error === 'invalid_client') {
-        tab.push({ message: 'Client invalide', code: error });
-      }
-      if (error === 'invalid_method') {
-        tab.push({ message: 'Méthode invalide', code: error });
-      }
-      if (error === 'insufficient_rights') {
-        tab.push({ message: 'Droits insuffisants', code: error });
-      }
-      if (error === 'the_device_does_not_belong_to_the_user') {
-        tab.push({
-          message: "Cet appareil n'existe pas ou n'est plus valide",
-          code: error,
-        });
+      switch (error) {
+        case 'missing_params':
+          tab.push({
+            message: 'Un ou plusieurs paramètre(s) est / sont manquant(s)',
+            code: error,
+          });
+          break;
+
+        case 'too_many_params':
+          tab.push({
+            message: 'Trop de paramètres ont été envoyés',
+            code: error,
+          });
+          break;
+
+        case 'mailer_failed':
+          tab.push({
+            message: 'Envoi du mail invalide',
+            code: error,
+          });
+          break;
+
+        case 'invalid_param_value':
+          tab.push({
+            message:
+              "Valeur(s) d'un ou plusieurs paramètre est / sont invalide(s)",
+            code: error,
+          });
+          break;
+
+        case 'invalid_phone_number':
+          tab.push({
+            message: 'Numéro de téléphone invalide',
+            code: error,
+          });
+          break;
+
+        case 'invalid_email_address':
+          tab.push({
+            message: 'Adresse email invalide',
+            code: error,
+          });
+          break;
+
+        case 'alias_too_short':
+          tab.push({
+            message: 'Alias trop court (4 caractères minimum)',
+            code: error,
+          });
+          break;
+
+        case 'password_too_short':
+          tab.push({
+            message: 'Mot de passe trop court (6 caractères minimum)',
+            code: error,
+          });
+          break;
+
+        case 'password_must_match':
+          tab.push({
+            message: 'Les mots de passe doivent être identique',
+            code: error,
+          });
+          break;
+
+        case 'new_password_too_short':
+          tab.push({
+            message: 'Nouveau mot de passe trop court (6 caractères minimum)',
+            code: error,
+          });
+          break;
+
+        case 'email_address_already_taken':
+          tab.push({
+            message: 'Cette adresse email est déjà existante',
+            code: error,
+          });
+          break;
+
+        case 'alias_already_taken':
+          tab.push({
+            message: 'Cet alias est déjà existant',
+            code: error,
+          });
+          break;
+
+        case 'invalid_user_type':
+          tab.push({
+            message: "Type d'utilisateur invalide",
+            code: error,
+          });
+          break;
+
+        case 'invalid_grant_type':
+          tab.push({
+            message: 'Type du grant invalide',
+            code: error,
+          });
+          break;
+
+        case 'invalid_credentials':
+          tab.push({
+            message: 'Identifiants invalides',
+            code: error,
+          });
+          break;
+
+        case 'invalid_access_token':
+          tab.push({
+            message: "Token d'accès invalide",
+            code: error,
+          });
+          break;
+
+        case 'invalid_refresh_token':
+          tab.push({
+            message: 'Token de rafraîchissement invalide',
+            code: error,
+          });
+          break;
+
+        case 'invalid_client':
+          tab.push({
+            message: 'Client invalide',
+            code: error,
+          });
+          break;
+
+        case 'invalid_method':
+          tab.push({
+            message: 'Méthode invalide',
+            code: error,
+          });
+          break;
+
+        case 'insufficient_rights':
+          tab.push({
+            message: 'Droits insuffisants',
+            code: error,
+          });
+          break;
+
+        case 'the_device_does_not_belong_to_the_user':
+          tab.push({
+            message: "Cet appareil n'existe pas ou n'est plus valide",
+            code: error,
+          });
+          break;
+
+        default:
+          tab.push({
+            message: error,
+            code: 'unknown_command',
+          });
+          break;
       }
     });
 

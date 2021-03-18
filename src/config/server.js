@@ -22,7 +22,8 @@ import matchRouter from '@/api/matches/match.routes';
 // import authRouter from '@/api/auth/auth.routes';
 
 import log from '@/helpers/log';
-import '@/scripts/cron';
+import response from '@/helpers/response';
+// import '@/scripts/cron';
 
 const app = express();
 
@@ -102,6 +103,10 @@ class Server {
       // app.use(`${process.env.API_VERSION}/leagues`, leagueRouter);
       // Could use decentralized authorization server
       // app.use(`${process.env.API_VERSION}/auth`, authRouter);
+
+      app.get('/', (req, res) => {
+        response.success(res, 200, 'user_welcome');
+      });
 
       app.use((req, res) => {
         res
