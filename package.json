@@ -2,7 +2,7 @@
   "name": "nbapp_api",
   "version": "0.1.0",
   "description": "Nba App Backend",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "lint": "babel-node ./src/scripts/lint.js",
     "test": "npm run test:unit",
