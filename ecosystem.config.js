@@ -12,7 +12,8 @@ module.exports = {
       host: '146.88.238.251',
       ref: 'origin/main',
       repo: 'git@github.com:tphilippini/nbapp_api.git',
-      path: '/home/evurgaxq/nbapp_api',
+      path: '/home/evurgaxq/api',
+      'pre-deploy': 'source /home/evurgaxq/nodevenv/api/12/bin/activate',
       'post-deploy':
         'npm install && npm run build && pm2 reload ecosystem.config.js --env production && pm2 save',
     },

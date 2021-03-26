@@ -13,10 +13,13 @@
     "update:evals": "babel-node ./src/scripts/update/evals.js",
     "update:youtube-videos": "babel-node ./src/scripts/update/youtube-videos.js",
     "update:connect-youtube-api": "babel-node ./src/scripts/update/connect-youtube-api.js",
+    "prod:update:daily-matches": "node ./dist/scripts/update/daily-matches.js",
+    "prod:update:evals": "node ./dist/scripts/update/evals.js",
+    "prod:update:teams": "node ./dist/scripts/update/teams.js",
+    "prod:update:players": "node ./dist/scripts/update/players.js",
     "dev": "cross-env NODE_ENV=development nodemon --exec babel-node --use_strict ./src/index.js",
-    "start": "node ./dist/index.js",
     "build": "npm run lint && cross-env NODE_ENV=production babel ./src --out-dir ./dist",
-    "serve": "node ./dist/index.js"
+    "start": "node ./dist/index.js"
   },
   "husky": {
     "hooks": {

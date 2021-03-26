@@ -23,7 +23,7 @@ import matchRouter from '@/api/matches/match.routes';
 
 import log from '@/helpers/log';
 import response from '@/helpers/response';
-// import '@/scripts/cron';
+import '@/scripts/cron';
 
 const app = express();
 
