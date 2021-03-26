@@ -14,7 +14,7 @@ module.exports = {
       repo: 'git@github.com:tphilippini/nbapp_api.git',
       path: '/home/evurgaxq/nbapp_api',
       'post-deploy':
-        'npm install && npm run build && pm2 reload ecosystem.config.js --env production && pm2 save',
+        'source /home/evurgaxq/nodevenv/nbapp_api/12/bin/activate && npm install && npm run build && pm2 reload ecosystem.config.js --env production && pm2 save',
     },
   },
 };
