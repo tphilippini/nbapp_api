@@ -4,10 +4,8 @@ import execa from 'execa';
 import log from '@/helpers/log';
 // import loader from '@/helpers/loader';
 
-// NOTE : UTC -1 hour
-
 // Every 10 minutes between the hours of 21:00-00:00 on Sun and Sat
-cron.schedule('*/10 20-22,0 * * 0,6', async () => {
+cron.schedule('*/10 21-23,0 * * 0,6', async () => {
   log.info('Running cron...');
   log.default('Every minute on Sat,Sun from 21:00 to 00:00');
   // loader.start();
@@ -26,9 +24,9 @@ cron.schedule('*/10 20-22,0 * * 0,6', async () => {
 });
 
 // Every 10 minutes between the hours of 0:00-8:00
-cron.schedule('0/10 0-8 * * *', async () => {
+cron.schedule('0/10 0-9 * * *', async () => {
   log.info('Running cron...');
-  log.default('Every 10 minutes between the hours of 0:00-8:00');
+  log.default('Every 10 minutes between the hours of 0:00-9:00');
   // loader.start();
 
   try {
@@ -45,7 +43,7 @@ cron.schedule('0/10 0-8 * * *', async () => {
 });
 
 // At 10 minutes past 16:00
-cron.schedule('10 15 * * *', async () => {
+cron.schedule('10 16 * * *', async () => {
   log.info('Running cron...');
   log.default('At 10 minutes past 16:00');
   // loader.start();
@@ -64,7 +62,7 @@ cron.schedule('10 15 * * *', async () => {
 });
 
 // At 30 minutes past 8:00
-cron.schedule('30 7 * * *', async () => {
+cron.schedule('30 8 * * *', async () => {
   log.info('Running cron...');
   log.default('At 30 minutes past 8:00');
   // loader.start();
@@ -83,7 +81,7 @@ cron.schedule('30 7 * * *', async () => {
 });
 
 // At 10 minutes past 10:00 on the 5th day of every month
-cron.schedule('10 9 5 * *', async () => {
+cron.schedule('10 10 5 * *', async () => {
   log.info('Running cron...');
   log.default('At 10 minutes past 10:00 on the 5th day of every month');
   // loader.start();
