@@ -87,28 +87,33 @@ async function main() {
   });
 }
 
-mongoose.connect(
-  process.env.DB_URL,
-  {
+(async () => {
+  mongoose.connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
-  },
-  (error, connection) => {
-    if (error) {
-      log.error(`Connection error to the database ${process.env.DB_NAME}`);
-      return;
+  });
+
+  log.title('Initialization');
+  const { connection } = mongoose;
+  connection.once('open', () => {
+    log.success(`Hi! Connecting to the database ${process.env.DB_NAME}`);
+  });
+  connection.on('error', (err) => {
+    log.error(`Connection error to the database ${process.env.DB_NAME}`);
+    if (err) {
+      log.default(err.message);
     }
+    process.exit(1);
+  });
 
-    log.title('Initialization');
-    log.info(`Connected to the database ${process.env.DB_NAME}`);
+  log.title('Main');
+  await main().then(() => {
+    log.info('----------------------------------');
+    log.info('Closed database connection');
+    connection.close();
+    // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
+  });
 
-    log.title('Main');
-    main().then(() => {
-      log.info('----------------------------------');
-      log.info('Closed database connection');
-      connection.close();
-      // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
-    });
-  }
-);
+  connection.close();
+})();
