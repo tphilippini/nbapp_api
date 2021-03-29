@@ -24,9 +24,9 @@ cron.schedule('*/10 21-23,0 * * 0,6', async () => {
 });
 
 // Every 10 minutes between the hours of 0:00-8:00
-cron.schedule('0/10 0-9 * * *', async () => {
+cron.schedule('*/10 0-10 * * *', async () => {
   log.info('Running cron...');
-  log.default('Every 10 minutes between the hours of 0:00-9:00');
+  log.default('Every 10 minutes between the hours of 0:00-10:00');
   // loader.start();
 
   try {
@@ -61,10 +61,10 @@ cron.schedule('10 16 * * *', async () => {
   }
 });
 
-// At 30 minutes past 8:00
-cron.schedule('30 8 * * *', async () => {
+// At 30 minutes past 9:00
+cron.schedule('30 9 * * *', async () => {
   log.info('Running cron...');
-  log.default('At 30 minutes past 8:00');
+  log.default('At 30 minutes past 9:00');
   // loader.start();
 
   try {
