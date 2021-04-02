@@ -23,14 +23,52 @@ cron.schedule('*/10 21-23,0 * * 0,6', async () => {
   }
 });
 
-// Every 10 minutes between the hours of 0:00-8:00
-cron.schedule('*/10 0-10 * * *', async () => {
+// Every 10 minutes between the hours of 1:00-9:00
+cron.schedule('*/10 1-9 * * *', async () => {
   log.info('Running cron...');
-  log.default('Every 10 minutes between the hours of 0:00-10:00');
+  log.default('Every 10 minutes between the hours of 1:00-9:00');
   // loader.start();
 
   try {
     await execa('npm run prod:update:daily-matches', {
+      shell: true,
+    });
+
+    log.success('Looks great');
+    // loader.stop();
+  } catch (e) {
+    log.error(`Does not look great: ${e.stdout}`);
+    log.error(`ShortMessage : ${e.shortMessage}`);
+  }
+});
+
+// At 30 minutes past 9:00
+// cron.schedule('*/10 16-18 * * *', async () => {
+//   log.info('Running cron...');
+//   log.default('At 30 minutes past 9:00');
+//   // loader.start();
+
+//   try {
+//     await execa('npm run prod:update:daily-matches', {
+//       shell: true,
+//     });
+
+//     log.success('Looks great');
+//     // loader.stop();
+//   } catch (e) {
+//     log.error(`Does not look great: ${e.stdout}`);
+//     log.error(`ShortMessage : ${e.shortMessage}`);
+//   }
+// });
+
+// At 30 minutes past 9:00
+cron.schedule('30 9 * * *', async () => {
+  log.info('Running cron...');
+  log.default('At 30 minutes past 9:00');
+  // loader.start();
+
+  try {
+    await execa('npm run prod:update:evals', {
       shell: true,
     });
 
@@ -61,27 +99,8 @@ cron.schedule('10 16 * * *', async () => {
   }
 });
 
-// At 30 minutes past 9:00
-cron.schedule('30 9 * * *', async () => {
-  log.info('Running cron...');
-  log.default('At 30 minutes past 9:00');
-  // loader.start();
-
-  try {
-    await execa('npm run prod:update:evals', {
-      shell: true,
-    });
-
-    log.success('Looks great');
-    // loader.stop();
-  } catch (e) {
-    log.error(`Does not look great: ${e.stdout}`);
-    log.error(`ShortMessage : ${e.shortMessage}`);
-  }
-});
-
 // At 10 minutes past 10:00 on the 5th day of every month
-cron.schedule('10 10 5 * *', async () => {
+cron.schedule('12 10 5 * *', async () => {
   log.info('Running cron...');
   log.default('At 10 minutes past 10:00 on the 5th day of every month');
   // loader.start();
