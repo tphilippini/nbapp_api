@@ -1,6 +1,11 @@
 /* eslint-disable prettier/prettier */
 import { transports, createLogger, format } from 'winston';
 import 'winston-daily-rotate-file';
+import fs from 'fs';
+import path from 'path';
+
+const logDir = 'logs';
+if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
 
 const logger = createLogger({
   format: format.combine(
@@ -20,8 +25,8 @@ const logger = createLogger({
       level: 'info',
       datePattern: 'YYYY-MM-DD',
       zippedArchive: true,
-      filename: 'info-%DATE%.log',
-      dirname: './logs',
+      filename: path.join(logDir, 'info-%DATE%.log'),
+      dirname: `./${logDir}`,
       maxSize: '100m',
       maxFiles: '28',
       handleExceptions: true,
@@ -30,8 +35,8 @@ const logger = createLogger({
       level: 'error',
       datePattern: 'YYYY-MM-DD',
       zippedArchive: true,
-      filename: 'error-%DATE%.log',
-      dirname: './logs',
+      filename: path.join(logDir, 'error-%DATE%.log'),
+      dirname: `./${logDir}`,
       maxSize: '100m',
       maxFiles: '28',
       handleExceptions: true,

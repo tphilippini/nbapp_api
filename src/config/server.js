@@ -9,8 +9,6 @@ import cors from 'cors';
 
 // import passport from '@/config/passport';
 
-import { version } from '@@/package.json';
-
 import corsMidd from '@/middlewares/cors';
 import otherMidd from '@/middlewares/other';
 // import authErrorMidd from '@/middlewares/authError';
@@ -84,7 +82,7 @@ class Server {
 
       log.title('Initialization');
       log.success(`Hi! The current env is ${process.env.NODE_ENV}`);
-      log.success(`Hi! The current version is ${version}`);
+      log.success(`Hi! The current version is ${process.env.VERSION}`);
 
       await this.bootstrap();
       resolve();
