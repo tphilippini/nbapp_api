@@ -5,42 +5,52 @@ const response = {};
 response.success = (res, status, code, ...data) => {
   let message = '';
 
-  if (code === 'user_added') message = "L'utilisateur a été ajouté avec succès";
-  if (code === 'user_authenticated') {
-    message = "L'utilisateur a été authentifié avec succès";
+  switch (code) {
+    case 'user_added':
+      message = "L'utilisateur a été ajouté avec succès";
+      break;
+    case 'user_authenticated':
+      message = "L'utilisateur a été authentifié avec succès";
+      break;
+    case 'user_confirmed':
+      message = "L'utilisateur a été confirmé avec succès";
+      break;
+    case 'user_updated':
+      message = "L'utilisateur a été modifié avec succès";
+      break;
+    case 'password_updated':
+      message = 'Le mot de passe a été modifié avec succès';
+      break;
+    case 'tokens_updated':
+      message = 'Les tokens ont été mis à jour avec succès';
+      break;
+    case 'device_revoked':
+      message =
+        "L'accès à l'application pour cet appareil a été révoqué avec succès";
+      break;
+    case 'device_name_changed':
+      message = "Le nom de l'appareil a été modifié avec succès";
+      break;
+    case 'result_found':
+      message = 'Un ou plusieurs résultats ont été trouvé avec succès';
+      break;
+    case 'user_welcome':
+      message = 'Welcome on Nba App API';
+      break;
+    case 'user_forgot':
+      message =
+        'Un email pour réinitialiser votre mot de passe a été envoyé avec succès';
+      break;
+    case 'result_empty':
+      message = "Aucun résultat n'a été trouvé";
+      break;
+    case 'league_added':
+      message = 'La ligue a été ajouté avec succès';
+      break;
+    default:
+      message = 'unknown_command';
+      break;
   }
-  if (code === 'user_confirmed') {
-    message = "L'utilisateur a été confirmé avec succès";
-  }
-  if (code === 'user_updated') {
-    message = "L'utilisateur a été modifié avec succès";
-  }
-  if (code === 'password_updated') {
-    message = 'Le mot de passe a été modifié avec succès';
-  }
-  if (code === 'tokens_updated') {
-    message = 'Les tokens ont été mis à jour avec succès';
-  }
-  if (code === 'device_revoked') {
-    message =
-      "L'accès à l'application pour cet appareil a été révoqué avec succès";
-  }
-  if (code === 'device_name_changed') {
-    message = "Le nom de l'appareil a été modifié avec succès";
-  }
-
-  if (code === 'result_found') {
-    message = 'Un ou plusieurs résultats ont été trouvé avec succès';
-  }
-  if (code === 'user_welcome') {
-    message = 'Welcome on Nba App API';
-  }
-  if (code === 'user_forgot') {
-    message =
-      'Un email pour réinitialiser votre mot de passe a été envoyé avec succès';
-  }
-  if (code === 'result_empty') message = "Aucun résultat n'a été trouvé";
-  if (code === 'league_added') message = 'La ligue a été ajouté avec succès';
 
   const success = {
     success: true,

@@ -11,7 +11,7 @@ import { isValidDate } from '@/helpers/validator';
 const matchController = {};
 
 matchController.matchByDate = (req, res) => {
-  log.info('Hi! Getting matches...');
+  log.info('Getting matches...');
 
   const date = req.params.startDate;
 
@@ -34,7 +34,7 @@ matchController.matchByDate = (req, res) => {
             } else checkEvent.emit('success', 'result_empty', []);
           })
           .catch((err) => {
-            console.log(err);
+            log.error(err);
             errors.push('invalid_param_value');
             checkEvent.emit('error', errors);
           });

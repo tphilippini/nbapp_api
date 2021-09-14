@@ -10,7 +10,7 @@ const otherMidd = (req, res, next) => {
   res.removeHeader('X-Powered-By');
 
   log.title('Requesting');
-  log.info(`Hi! Request ${req.method} ${req.url}`);
+  log.info(`Request ${req.method} ${req.url}`);
 
   // Add next() to continue
   next();
