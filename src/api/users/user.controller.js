@@ -463,8 +463,6 @@ userController.getCurrent = (req, res) => {
     response.error(res, status, err);
   });
 
-  checking();
-
   checkEvent.on('success_current_user', (result) => {
     response.success(res, 200, 'user_confirmed', {
       uuid: result.uuid,
@@ -477,6 +475,8 @@ userController.getCurrent = (req, res) => {
       gid: result.google.id || undefined,
     });
   });
+
+  checking();
 };
 
 userController.linkAccount = (req, res) => {

@@ -88,19 +88,19 @@ authController.post = (req, res) => {
           }
 
           if (errors.length === 0) {
-            // Devices.doesTheRefreshTokenValid(
-            //   [clientId, refreshToken],
-            //   result => {
-            //     if (result.length > 0) {
-            //       checkEvent.emit('success_refresh_token_grant', result[0]);
-            //     } else {
-            //       errors.push('invalid_client');
-            //       checkEvent.emit('error', errors);
-            //     }
-            //   }
-            // );
-            errors.push('invalid_client');
-            return checkEvent.emit('error', errors);
+            Devices.doesTheRefreshTokenValid(clientId, refreshToken)
+              .then((device) => {
+                if (device) {
+                  checkEvent.emit('success_refresh_token_grant', device);
+                } else {
+                  errors.push('invalid_client');
+                  checkEvent.emit('error', errors);
+                }
+              })
+              .catch(() => {
+                errors.push('invalid_client');
+                checkEvent.emit('error', errors);
+              });
           }
         }
       } else {
@@ -123,7 +123,7 @@ authController.post = (req, res) => {
     response.error(res, status, err);
   });
 
-  checkEvent.on('success_password_grant', (result) => {
+  checkEvent.on('success_password_grant', async (result) => {
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
@@ -134,67 +134,94 @@ authController.post = (req, res) => {
       userType
     );
 
-    const device = new Devices({
-      uuid: deviceId,
+    const existingDevice = await Devices.findOne({
       userId: result._id,
-      userType,
-      refreshToken,
       name: deviceName,
-      ua: uaName,
+      revoked: 0,
     });
 
-    device.save((err) => {
-      if (err) {
-        const errors = [];
-        errors.push(err);
-        response.error(res, 500, errors);
-      }
+    if (existingDevice) {
+      log.info('Hi! Updating existing device...');
+      existingDevice.uaName = uaName;
+      existingDevice.uuid = deviceId;
+      existingDevice.refreshToken = refreshToken;
 
-      // TODO Use "let" when other model is available
-      const code = 'user_authenticated';
-
-      response.success(res, 200, code, {
-        access_token: accessToken,
-        token_type: 'bearer',
-        expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
-        refresh_token: refreshToken,
-        client_id: deviceId,
-        uuid: result.uuid,
-        email: result.local.email,
-        alias: result.alias,
-        firstName: result.firstName,
-        lastName: result.lastName,
-        methods: result.methods,
-        fid: result.facebook.id || undefined,
-        gid: result.google.id || undefined,
+      const device = new Devices(existingDevice);
+      await device.updateOne(existingDevice);
+    } else {
+      log.info('Hi! Creating new device...');
+      const device = new Devices({
+        uuid: deviceId,
+        userId: result._id,
+        userType,
+        refreshToken,
+        name: deviceName,
+        ua: uaName,
       });
+
+      await device.save((err) => {
+        if (err) {
+          const errors = [];
+          errors.push(err);
+          response.error(res, 500, errors);
+        }
+      });
+    }
+
+    // TODO Use "let" when other model is available
+    const code = 'user_authenticated';
+
+    response.success(res, 200, code, {
+      access_token: accessToken,
+      token_type: 'bearer',
+      expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
+      refresh_token: refreshToken,
+      client_id: deviceId,
+      uuid: result.uuid,
+      email: result.local.email,
+      alias: result.alias,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      methods: result.methods,
+      fid: result.facebook.id || undefined,
+      gid: result.google.id || undefined,
     });
   });
 
-  checkEvent.on('success_refresh_token_grant', (result) => {
+  checkEvent.on('success_refresh_token_grant', async (result) => {
     const deviceId = uuid.v4();
+    const email =
+      result.userId.local.email ||
+      result.userId.facebook.id ||
+      result.userId.google.id;
 
     const newAccessToken = generateAccessToken(
       deviceId,
-      result.userId,
+      result.userId.uuid,
+      result.userId.alias,
+      email,
       result.userType
     );
     const newRefreshToken = generateRefreshToken(deviceId);
 
-    console.log('update refresh token', newAccessToken, newRefreshToken);
-    /* Device.updateRefreshToken(
-      [newRefreshToken, result.refreshToken, result.uuid],
-      () => {
-        response.success(res, 200, 'tokens_updated', {
-          access_token: newAccessToken,
-          token_type: 'bearer',
-          expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
-          refresh_token: newRefreshToken,
-          client_id: result.uuid
-        });
-      }
-    );
-    */
+    log.info('Hi! Updating existing device...');
+    const existingDevice = await Devices.findOne({
+      uuid: result.uuid,
+    });
+    existingDevice.refreshToken = newRefreshToken;
+    const device = new Devices(existingDevice);
+    await device.updateOne(existingDevice);
+
+    // TODO Use "let" when other model is available
+    const code = 'tokens_updated';
+
+    response.success(res, 200, code, {
+      access_token: newAccessToken,
+      token_type: 'bearer',
+      expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
+      refresh_token: newRefreshToken,
+      client_id: result.uuid,
+    });
   });
 
   checking();
@@ -263,7 +290,7 @@ authController.google = (req, res) => {
     response.error(res, status, err);
   });
 
-  checkEvent.on('success_google_grant', (result) => {
+  checkEvent.on('success_google_grant', async (result) => {
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
@@ -274,40 +301,57 @@ authController.google = (req, res) => {
       userType
     );
 
-    const device = new Devices({
-      uuid: deviceId,
+    const existingDevice = await Devices.findOne({
       userId: result._id,
-      userType,
-      refreshToken,
       name: deviceName,
-      ua: uaName,
+      revoked: 0,
     });
 
-    device.save((err) => {
-      if (err) {
-        const errors = [];
-        errors.push(err);
-        response.error(res, 500, errors);
-      }
+    if (existingDevice) {
+      log.info('Hi! Updating existing device...');
+      existingDevice.uaName = uaName;
+      existingDevice.uuid = deviceId;
+      existingDevice.refreshToken = refreshToken;
 
-      // TODO Use "let" when other model is available
-      const code = 'user_authenticated';
-
-      response.success(res, 200, code, {
-        access_token: accessToken,
-        token_type: 'bearer',
-        expires_in: 3600,
-        refresh_token: refreshToken,
-        client_id: deviceId,
-        uuid: result.uuid,
-        email: result.google.email,
-        alias: result.alias,
-        firstName: result.firstName,
-        lastName: result.lastName,
-        methods: result.methods,
-        fid: result.facebook.id || undefined,
-        gid: result.google.id || undefined,
+      const device = new Devices(existingDevice);
+      await device.updateOne(existingDevice);
+    } else {
+      log.info('Hi! Creating new device...');
+      const device = new Devices({
+        uuid: deviceId,
+        userId: result._id,
+        userType,
+        refreshToken,
+        name: deviceName,
+        ua: uaName,
       });
+
+      await device.save((err) => {
+        if (err) {
+          const errors = [];
+          errors.push(err);
+          response.error(res, 500, errors);
+        }
+      });
+    }
+
+    // TODO Use "let" when other model is available
+    const code = 'user_authenticated';
+
+    response.success(res, 200, code, {
+      access_token: accessToken,
+      token_type: 'bearer',
+      expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
+      refresh_token: refreshToken,
+      client_id: deviceId,
+      uuid: result.uuid,
+      email: result.local.email,
+      alias: result.alias,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      methods: result.methods,
+      fid: result.facebook.id || undefined,
+      gid: result.google.id || undefined,
     });
   });
 
@@ -380,7 +424,7 @@ authController.facebook = (req, res) => {
     response.error(res, status, err);
   });
 
-  checkEvent.on('success_facebook_grant', (result) => {
+  checkEvent.on('success_facebook_grant', async (result) => {
     const deviceId = uuid.v4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
@@ -391,39 +435,57 @@ authController.facebook = (req, res) => {
       userType
     );
 
-    const device = new Devices({
-      uuid: deviceId,
+    const existingDevice = await Devices.findOne({
       userId: result._id,
-      userType,
-      refreshToken,
       name: deviceName,
-      ua: uaName,
+      revoked: 0,
     });
 
-    device.save((err) => {
-      if (err) {
-        const errors = [];
-        errors.push(err);
-        response.error(res, 500, errors);
-      }
+    if (existingDevice) {
+      log.info('Hi! Updating existing device...');
+      existingDevice.uaName = uaName;
+      existingDevice.uuid = deviceId;
+      existingDevice.refreshToken = refreshToken;
 
-      // TODO Use "let" when other model is available
-      const code = 'user_authenticated';
-
-      response.success(res, 200, code, {
-        access_token: accessToken,
-        token_type: 'bearer',
-        expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
-        refresh_token: refreshToken,
-        client_id: deviceId,
-        uuid: result.uuid,
-        email: result.facebook.email,
-        alias: result.alias,
-        firstName: result.firstName,
-        lastName: result.lastName,
-        methods: result.methods,
-        photo: result.photo,
+      const device = new Devices(existingDevice);
+      await device.updateOne(existingDevice);
+    } else {
+      log.info('Hi! Creating new device...');
+      const device = new Devices({
+        uuid: deviceId,
+        userId: result._id,
+        userType,
+        refreshToken,
+        name: deviceName,
+        ua: uaName,
       });
+
+      await device.save((err) => {
+        if (err) {
+          const errors = [];
+          errors.push(err);
+          response.error(res, 500, errors);
+        }
+      });
+    }
+
+    // TODO Use "let" when other model is available
+    const code = 'user_authenticated';
+
+    response.success(res, 200, code, {
+      access_token: accessToken,
+      token_type: 'bearer',
+      expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),
+      refresh_token: refreshToken,
+      client_id: deviceId,
+      uuid: result.uuid,
+      email: result.local.email,
+      alias: result.alias,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      methods: result.methods,
+      fid: result.facebook.id || undefined,
+      gid: result.google.id || undefined,
     });
   });
 

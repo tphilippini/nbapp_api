@@ -13,24 +13,19 @@ const generateAccessToken = (
   userAlias,
   userEmail,
   userType
-) => {
-  const currentTimestamp = timestamp();
-  const futureTimestamp =
-    currentTimestamp + parseInt(process.env.API_ACCESS_TOKEN_EXP, 10);
-
-  return jwt.sign(
+) =>
+  jwt.sign(
     {
       iss: 'nbapp',
-      exp: futureTimestamp,
       sub: deviceId,
       user: userId,
       email: userEmail,
       alias: userAlias,
       user_type: userType,
     },
-    process.env.API_ACCESS_TOKEN_SECRET
+    process.env.API_ACCESS_TOKEN_SECRET,
+    { expiresIn: process.env.API_ACCESS_TOKEN_EXP }
   );
-};
 
 const generateRefreshToken = (deviceId) =>
   crypto
@@ -59,6 +54,7 @@ const validateToken = (token, cb) =>
     if (err) return cb(false);
     return cb(true, decoded);
   });
+
 export {
   generateAccessToken,
   generateRefreshToken,
