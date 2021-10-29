@@ -1,8 +1,14 @@
 import cron from 'node-cron';
 import execa from 'execa';
 
+import date from '@/helpers/date';
 import log from '@/helpers/log';
 // import loader from '@/helpers/loader';
+
+// Watch time server
+cron.schedule('* * * * *', async () => {
+  log.info(`Hi from cron at... ${date.dateTime()}`);
+});
 
 // Every 10 minutes between the hours of 21:00-00:00 on Sun and Sat
 cron.schedule('*/10 21-23,0 * * 0,6', async () => {

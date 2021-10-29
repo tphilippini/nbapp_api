@@ -52,6 +52,7 @@ DevicesSchema.statics.doesTheRefreshTokenValid = function (
   return new Promise((resolve, reject) => {
     const end = dayjs
       .duration(process.env.API_REFRESH_TOKEN_EXP, 'd')
+      // .duration(10, 'm')
       .asMilliseconds();
     this.findOne(
       {

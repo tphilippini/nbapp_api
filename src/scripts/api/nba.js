@@ -34,6 +34,8 @@ EFF = [ (( PTS+REB+PD+INT+BLOC )) + (( TT-TM ) + ( LFT-LFM ) - BP )) ] / MJ
 - MJ ( G ) : nombre de matches joués dans une compétition
 */
 
+const year = '2021';
+
 async function findTodayMatches(date) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -54,7 +56,7 @@ async function findTeams() {
       // const uri = `https://data.nba.net/prod/v2/${dayjs().format(
       //   "Y"
       // )}/teams.json`;
-      const uri = 'https://data.nba.net/prod/v2/2020/teams.json';
+      const uri = `https://data.nba.net/prod/v2/${year}/teams.json`;
       log.success(uri);
       const teams = await axios.get(uri);
       resolve(teams.data.league.standard);
@@ -71,7 +73,7 @@ async function checkTeamRoster(teamShortName) {
       // const uri = `https://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`;
       // /prod/v1/2019/teams/{{teamUrlCode}}/roster.json
       // https://data.nba.net/prod/v1/2019/players.json
-      const uri = `https://data.nba.net/data/json/cms/2020/team/${teamShortName}/roster.json`;
+      const uri = `https://data.nba.net/data/json/cms/${year}/team/${teamShortName}/roster.json`;
       log.success(uri);
       const roster = await axios.get(uri);
       resolve(roster.data.sports_content.roster.players.player);
@@ -88,7 +90,7 @@ async function checkPlayers() {
       // const uri = `https://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`;
       // /prod/v1/2019/teams/{{teamUrlCode}}/roster.json
       // https://data.nba.net/prod/v1/2019/players.json
-      const uri = 'https://data.nba.net/prod/v1/2020/players.json';
+      const uri = `https://data.nba.net/prod/v1/${year}/players.json`;
       log.success(uri);
       const roster = await axios.get(uri);
       resolve(roster.data.league.standard);
@@ -153,7 +155,7 @@ async function checkBoxScore(dateFormatted, gameId) {
 async function findPlayerLatestStats(playerId) {
   return new Promise(async (resolve, reject) => {
     try {
-      const uri = `http://data.nba.net/data/10s/prod/v1/2020/players/${playerId}_profile.json`;
+      const uri = `http://data.nba.net/data/10s/prod/v1/${year}/players/${playerId}_profile.json`;
       log.success(uri);
       const profile = await axios.get(uri);
       const { latest } = profile.data.league.standard.stats;
