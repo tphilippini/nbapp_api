@@ -1,9 +1,12 @@
 import mongoose from 'mongoose';
-import axios from 'axios';
 import { forEachSeries } from 'p-iteration';
 
 import log from '@/helpers/log';
-import { calcEfficiency, calcNotation } from '@/scripts/api/nba';
+import {
+  findPlayerLatestStats,
+  calcEfficiency,
+  calcNotation,
+} from '@/scripts/api/nba';
 
 import Players from '@/api/players/player.model';
 
@@ -21,11 +24,8 @@ async function main() {
           log.info('----------------------------------');
           log.info('Player exists, updating the record now...');
 
-          const uri = `http://data.nba.net/data/10s/prod/v1/2019/players/${player.playerId}_profile.json`;
-          // log.success(uri);
-          const profile = await axios.get(uri);
-          const { latest } = profile.data.league.standard.stats;
-          player.efficiency = calcEfficiency(latest);
+          const stats = await findPlayerLatestStats(player.playerId);
+          player.efficiency = calcEfficiency(stats);
           player.notation = calcNotation(player.efficiency);
 
           try {
