@@ -22,7 +22,7 @@ import authRouter from '@/api/auth/auth.routes';
 import log from '@/helpers/log';
 import response from '@/helpers/response';
 import date from '@/helpers/date';
-import '@/scripts/cron';
+// import '@/scripts/cron';
 
 const app = express();
 

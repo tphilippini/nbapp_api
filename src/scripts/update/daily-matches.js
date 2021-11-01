@@ -302,7 +302,7 @@ async function main(dateFormatted) {
   log.title('Main');
   // grab todays games and continue to update
   const todayDate =
-    dayjs().hour() < 16
+    dayjs().hour() < 15
       ? dayjs().subtract(1, 'd').format('YYYYMMDD')
       : dayjs().format('YYYYMMDD');
   log.info(`Running matches on ${todayDate}`);
