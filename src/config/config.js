@@ -53,6 +53,7 @@
 
 const ytChannel = [
   { title: 'MLG Highlights', id: 'UC-XWpctw55Q6b_AHo8rkJgw' },
+  { title: 'GMFB', id: 'UC121EJzhXfzfVCoAIAdAq6Q' },
   // { title: "Free dawkins", id: "UCEjOSbbaOfgnfRODEEMYlCw" },
   // { title: "Ximo Pierto", id: "UC8ndn9yAGs5L8NqKUBKzfyw" },
   // { title: "CliveNBAParody", id: "UCSGkhjEMPDq0iPb0JHb_w5Q" }

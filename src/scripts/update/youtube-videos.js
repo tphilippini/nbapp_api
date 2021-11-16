@@ -237,36 +237,23 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
       await forEachSeries(todaysMatches, async (match) => {
         const hTeam = teams.find((t) => t.teamTriCode === match.hTeamTriCode);
         const vTeam = teams.find((t) => t.teamTriCode === match.vTeamTriCode);
-
-        if (hTeam && vTeam) {
-          if (match.statusNum === 3 && matchNotFresh(match.endTimeUTC)) {
-            log.warning(
-              `Match is finished and ${limitHours}+ hours since ended, dont search for videos`
-            );
-          } else if (
-            match.statusNum === 3 &&
-            !matchNotFresh(match.endTimeUTC)
-          ) {
+        const isMatchNotFresh = matchNotFresh(match.endTimeUTC);
+        if (match.statusNum === 3 && isMatchNotFresh) {
+          log.warning(
+            `Match is finished and ${limitHours}+ hours since ended, dont search for videos`
+          );
+        } else if (!isMatchNotFresh) {
+          if (hTeam && vTeam) {
             log.default(`${hTeam.teamName} vs ${vTeam.teamName}`);
-            log.default(
-              `Ready to look for videos, match is over but < ${limitHours} hours since it ended`
-            );
-
-            const videos = await videoFromChannel(
-              channelId,
-              `"${hTeam.teamName}"|"${hTeam.teamShortName}"|"${vTeam.teamName}"|"${vTeam.teamShortName}"`,
-              dayjs(match.startTimeUTCString).toISOString()
-            );
-            log.success(`Found ${videos.items.length} videos.`);
-
-            if (videos.items.length > 0) {
-              await saveVideosToDB(videos.items, match.matchId);
-              log.success(`Finished saving videos for match: ${match.matchId}`);
-              log.info('----------------------------------');
+            if (match.statusNum === 3) {
+              log.default(
+                `Ready to look for videos, match is over but < ${limitHours} hours since it ended`
+              );
             }
-          } else if (match.statusNum === 2) {
-            log.default(hTeam.teamName, vTeam.teamName);
-            log.default('Ready to look for videos, match is active');
+
+            if (match.statusNum === 2) {
+              log.default('Ready to look for videos, match is active');
+            }
 
             const videos = await videoFromChannel(
               channelId,
@@ -281,12 +268,10 @@ async function findAndSaveYoutubeVideos(dateFormatted, channelId) {
               log.info('----------------------------------');
             }
           } else {
-            log.default(
-              'Match is not yet active, dont look for youtube videos'
-            );
+            log.default('Team is missing, dont look for youtube videos');
           }
         } else {
-          log.default('Team is missing, dont look for youtube videos');
+          log.default('Match is not yet active, dont look for youtube videos');
         }
       });
 
@@ -309,30 +294,33 @@ async function main(dateFormatted) {
   });
 }
 
-mongoose.connect(
-  process.env.DB_URL,
-  {
+(async () => {
+  mongoose.connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
-  },
-  (error, connection) => {
-    if (error) {
-      log.error(`Connection error to the database ${process.env.DB_NAME}`);
-      return;
+  });
+  log.title('Initialization');
+  const { connection } = mongoose;
+  connection.once('open', () => {
+    log.success(`Hi! Connecting to the database ${process.env.DB_NAME}`);
+  });
+  connection.on('error', (err) => {
+    log.error(`Connection error to the database ${process.env.DB_NAME}`);
+    if (err) {
+      log.default(err.message);
     }
+    process.exit(1);
+  });
 
-    log.title('Initialization');
-    log.info(`Connected to the database ${process.env.DB_NAME}`);
+  log.title('Main');
+  // grab todays games and continue to update
+  const todayDate = dayjs().subtract(1, 'd').format('YYYYMMDD');
+  await main(todayDate).then(() => {
+    log.info('----------------------------------');
+    log.info('Closed database connection');
+    // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
+  });
 
-    log.title('Main');
-    // grab todays games and continue to update
-    const todayDate = dayjs().subtract(1, 'd').format('YYYYMMDD');
-    main(todayDate).then(() => {
-      log.info('----------------------------------');
-      log.info('Closed database connection');
-      connection.close();
-      // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
-    });
-  }
-);
+  connection.close();
+})();

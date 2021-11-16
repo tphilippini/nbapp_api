@@ -18,7 +18,7 @@ function searchChannel(channelId, q, publishedAfter) {
         part: 'snippet',
         channelId,
         order: 'viewCount',
-        maxResults: '50',
+        maxResults: '10',
         publishedAfter,
         q,
       },
