@@ -3,20 +3,24 @@
 
 'use strict';
 
-import uuid from 'uuid';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  generateSignUpToken,
+} from '@/helpers/token';
 import { isEmail, isUUID } from 'validator';
-import bcrypt from 'bcrypt';
-import EventEmitter from 'events';
-import ua from 'useragent';
 
-import Users from '@/api/users/user.model';
 import Devices from '@/api/devices/device.model';
-
-import { generateAccessToken, generateRefreshToken } from '@/helpers/token';
-import response from '@/helpers/response';
+import EventEmitter from 'events';
+import Users from '@/api/users/user.model';
+import bcrypt from 'bcrypt';
 import log from '@/helpers/log';
+import mailer from '@/helpers/mailer';
 import os from '@/helpers/os';
 import passport from '@/config/passport';
+import response from '@/helpers/response';
+import ua from 'useragent';
+import uuid from 'uuid';
 
 const userController = {};
 
@@ -40,6 +44,9 @@ userController.post = (req, res) => {
     } else {
       if (!isEmail(email)) {
         errors.push('invalid_email_address');
+      }
+      if (alias.length < 4) {
+        errors.push('alias_too_short');
       }
       if (password.length < 6) {
         errors.push('password_too_short');
@@ -151,7 +158,26 @@ userController.post = (req, res) => {
            * For next 201 code, we should have the URL relatives to the new ressource
            * Ex: /users/:uuid
            */
-          response.successAdd(res, 'user_added', '/auth/token', {
+
+          let message = 'user_added';
+          if (user.methods.includes('local')) {
+            message = 'user_added_confirm';
+
+            const confirmToken = generateSignUpToken(user.uuid, 'user');
+            const link = `${process.env.APP_HOST}/auth/confirm/${confirmToken}`;
+
+            // console.log({ email, alias, link });
+
+            mailer.sendSignUpEmail({ email, alias, link }, (err) => {
+              if (err) {
+                log.error('[mailer_failed] - sendSignUpEmail');
+              } else {
+                log.success('Hi! Confirm account email sent...');
+              }
+            });
+          }
+
+          response.successAdd(res, message, '/auth/token', {
             access_token: accessToken,
             token_type: 'bearer',
             expires_in: parseInt(process.env.API_ACCESS_TOKEN_EXP, 10),

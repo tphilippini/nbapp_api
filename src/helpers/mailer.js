@@ -1,8 +1,8 @@
-import nodemailer from 'nodemailer';
 import hbs from 'nodemailer-express-handlebars';
+import nodemailer from 'nodemailer';
 
 class Mailer {
-  constructor() {
+  _setTransporter() {
     this.from = '"NBA App" <noreply@myapp.com>';
     // create reusable transporter object using the default SMTP transport
     this.transporter = nodemailer.createTransport({
@@ -29,14 +29,32 @@ class Mailer {
     );
   }
 
-  sendResetPasswordEmail(data, cb) {
+  sendSignUpEmail(data, cb) {
+    this._setTransporter();
     this.transporter.sendMail(
       {
         from: this.from,
         to: data.email,
+        subject: 'NBA App - Confirm your account ✔',
+        template: 'signup',
+        context: data,
+      },
+      cb
+    );
+  }
+
+  sendResetPasswordEmail(data, cb) {
+    this._setTransporter();
+    this.transporter.sendMail(
+      {
+        from: this.from,
+        to: data.local.email,
         subject: 'NBA App - Reseting password ✔',
         template: 'reset',
-        context: data,
+        context: {
+          alias: data.alias,
+          link: data.link,
+        },
       },
       cb
     );

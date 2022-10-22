@@ -9,6 +9,10 @@ response.success = (res, status, code, ...data) => {
     case 'user_added':
       message = "L'utilisateur a été ajouté avec succès";
       break;
+    case 'user_added_confirm':
+      message =
+        "L'utilisateur a été ajouté avec succès.\nUn email pour confirmer votre inscription a été envoyé";
+      break;
     case 'user_authenticated':
       message = "L'utilisateur a été authentifié avec succès";
       break;
@@ -119,6 +123,13 @@ response.error = (res, status, errors = []) => {
         case 'invalid_email_address':
           tab.push({
             message: 'Adresse email invalide',
+            code: error,
+          });
+          break;
+
+        case 'email_address_not_confirmed':
+          tab.push({
+            message: 'Adresse email non vérifié',
             code: error,
           });
           break;

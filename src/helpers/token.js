@@ -2,9 +2,8 @@
 
 'use strict';
 
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-
+import jwt from 'jsonwebtoken';
 import { timestamp } from '@/helpers/time';
 
 const generateAccessToken = (
@@ -41,23 +40,47 @@ const generateResetToken = (userId, userType) => {
   return jwt.sign(
     {
       iss: 'nbapp',
-      exp: futureTimestamp,
       user: userId,
+      exp: futureTimestamp,
       user_type: userType,
     },
     process.env.API_RESET_TOKEN_SECRET
   );
 };
 
-const validateToken = (token, cb) =>
-  jwt.verify(token, process.env.API_RESET_TOKEN_SECRET, (err, decoded) => {
+const generateSignUpToken = (userId, userType) => {
+  const currentTimestamp = timestamp();
+  const futureTimestamp =
+    currentTimestamp + parseInt(process.env.API_SIGNUP_TOKEN_EXP, 10);
+
+  return jwt.sign(
+    {
+      iss: 'nbapp',
+      user: userId,
+      exp: futureTimestamp,
+      user_type: userType,
+    },
+    process.env.API_SIGNUP_TOKEN_SECRET
+  );
+};
+
+const validateToken = (data, cb) => {
+  let secret;
+  console.log(data);
+
+  if (data.type === 'reset') secret = process.env.API_RESET_TOKEN_SECRET;
+  else if (data.type === 'signup') secret = process.env.API_SIGNUP_TOKEN_SECRET;
+
+  jwt.verify(data.token, secret, (err, decoded) => {
     if (err) return cb(false);
     return cb(true, decoded);
   });
+};
 
 export {
   generateAccessToken,
   generateRefreshToken,
   generateResetToken,
+  generateSignUpToken,
   validateToken,
 };

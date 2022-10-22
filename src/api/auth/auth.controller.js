@@ -3,28 +3,25 @@
 
 'use strict';
 
-import bcrypt from 'bcrypt';
-import uuid from 'uuid';
-import EventEmitter from 'events';
-import { isUUID } from 'validator';
-import ua from 'useragent';
-
-import Users from '@/api/users/user.model';
-import Devices from '@/api/devices/device.model';
-
-import passport from '@/config/passport';
-
-import { isSha1 } from '@/helpers/validator';
 import {
   generateAccessToken,
   generateRefreshToken,
   generateResetToken,
   validateToken,
 } from '@/helpers/token';
-import response from '@/helpers/response';
+
+import Devices from '@/api/devices/device.model';
+import EventEmitter from 'events';
+import Users from '@/api/users/user.model';
+import bcrypt from 'bcrypt';
+import { isSha1 } from '@/helpers/validator';
+import { isUUID } from 'validator';
 import log from '@/helpers/log';
 import mailer from '@/helpers/mailer';
-// import { runInNewContext } from 'vm';
+import passport from '@/config/passport';
+import response from '@/helpers/response';
+import ua from 'useragent';
+import uuid from 'uuid';
 
 const authController = {};
 
@@ -509,16 +506,20 @@ authController.validate = (req, res) => {
       if (grantType === 'validate') {
         log.info('Hi! Validating token...');
 
-        const { token } = req.body;
+        const { token, type } = req.body;
 
-        if (!token || !userType) {
+        if (!token || !type || !userType) {
           errors.push('missing_params');
         } else {
           if (allowedUserTypes.indexOf(userType) === -1) {
             errors.push('invalid_user_type');
           }
 
-          validateToken(token, (result) => {
+          if (type !== 'reset' && type !== 'signup') {
+            errors.push('missing_params');
+          }
+
+          validateToken({ type, token }, (result) => {
             if (result) {
               checkEvent.emit('success_validate_grant');
             } else {
@@ -592,7 +593,8 @@ authController.reset = (req, res) => {
 
           if (errors.length === 0) {
             log.info('Hi! Validating token...');
-            validateToken(token, (result, decoded) => {
+            console.log(token);
+            validateToken({ type: 'reset', token }, (result, decoded) => {
               if (result && decoded) {
                 Users.findOneByUUID(decoded.user)
                   .then((u) => {
@@ -645,12 +647,12 @@ authController.reset = (req, res) => {
   });
 
   checkEvent.on('success_reset_grant', (result) => {
-    const user = new Users(result);
-    user.save((err) => {
+    result.save((err) => {
       if (err) {
         const errors = [];
         errors.push(err);
-        response.error(res, 500, errors);
+        console.error(err);
+        response.error(res, 500, 'invalid_param_value');
       }
 
       response.success(res, 200, 'password_updated');
@@ -724,15 +726,108 @@ authController.forgot = (req, res) => {
 
   checkEvent.on('success_forgot_grant', (result) => {
     const resetToken = generateResetToken(result.uuid, userType);
-    result.link = `//${process.env.APP_HOST}:${process.env.APP_PORT}/reset/${resetToken}`;
+    result.link = `${process.env.APP_HOST}/auth/reset/${resetToken}`;
 
-    console.log(result.link);
+    // console.log(result, result.link);
+
+    if (!result.methods.includes('local')) {
+      response.error(res, 400, ['invalid_email_address']);
+    }
 
     mailer.sendResetPasswordEmail(result, (err) => {
-      if (err) response.error(res, 400, ['mailer_failed']);
+      if (err) {
+        response.error(res, 400, ['mailer_failed']);
+      } else {
+        log.success('Hi! Reset password email sent...');
+        response.success(res, 200, 'user_forgot');
+      }
+    });
+  });
 
-      log.success('Hi! Reset password email sent...');
-      response.success(res, 200, 'user_forgot');
+  checking();
+};
+
+authController.confirm = (req, res) => {
+  const grantType = req.body.grant_type;
+  const userType = req.body.user_type;
+
+  const checkEvent = new EventEmitter();
+
+  const checking = () => {
+    const errors = [];
+
+    if (!grantType) {
+      errors.push('missing_params');
+    } else {
+      const allowedUserTypes = ['user'];
+
+      if (grantType === 'confirm') {
+        log.info('Hi! Confirming local signup...');
+
+        const { token } = req.body;
+
+        if (!token || !userType) {
+          errors.push('missing_params');
+        } else {
+          if (allowedUserTypes.indexOf(userType) === -1) {
+            errors.push('invalid_user_type');
+          }
+
+          if (errors.length === 0) {
+            log.info('Hi! Validating token...');
+            validateToken({ type: 'signup', token }, (result, decoded) => {
+              if (result && decoded) {
+                Users.findOneByUUID(decoded.user)
+                  .then((u) => {
+                    if (u) {
+                      u.local.confirmed = true;
+                      checkEvent.emit('success_confirm_grant', u);
+                    } else {
+                      errors.push('invalid_credentials');
+                      checkEvent.emit('error', errors);
+                    }
+                  })
+                  .catch(() => {
+                    errors.push('invalid_access_token');
+                    checkEvent.emit('error', errors);
+                  });
+              } else {
+                errors.push('invalid_access_token');
+                checkEvent.emit('error', errors);
+              }
+            });
+          }
+        }
+      } else {
+        errors.push('invalid_grant_type');
+      }
+    }
+
+    if (errors.length > 0) {
+      checkEvent.emit('error', errors);
+    }
+  };
+
+  checkEvent.on('error', (err) => {
+    let status = 400;
+
+    if (err[0] === 'invalid_access_token') {
+      status = 401;
+    }
+
+    response.error(res, status, err);
+  });
+
+  checkEvent.on('success_confirm_grant', (result) => {
+    result.save((err) => {
+      if (err) {
+        const errors = [];
+        errors.push(err);
+        console.error(err);
+        response.error(res, 500, 'invalid_param_value');
+      }
+
+      response.success(res, 200, 'user_confirmed');
     });
   });
 

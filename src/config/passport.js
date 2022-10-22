@@ -1,16 +1,14 @@
 /* eslint-disable consistent-return */
 
-import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
+// import { setDefaultAlias } from '@/helpers/utils';
+import Users from '@/api/users/user.model';
 // import { Strategy as GoogleStrategy } from 'passport-google-token';
 // import FacebookStrategy from 'passport-facebook-token';
 import bcrypt from 'bcrypt';
-// import uuid from 'uuid';
-
 import log from '@/helpers/log';
-// import { setDefaultAlias } from '@/helpers/utils';
-import Users from '@/api/users/user.model';
-
+import passport from 'passport';
+// import uuid from 'uuid';
 require('dotenv').config();
 
 passport.use(
@@ -26,6 +24,10 @@ passport.use(
         const user = await Users.findOneByEmail(email);
 
         if (!user) return done('invalid_credentials', false);
+
+        if (!user.local.confirmed) {
+          return done('email_address_not_confirmed', false);
+        }
 
         bcrypt.compare(password, user.local.password, (err, isMatch) => {
           if (err) done('invalid_credentials', false);
