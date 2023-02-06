@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Nba App Backend",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "lint": "babel-node ./src/scripts/lint.js",
     "test": "npm run test:unit",
@@ -17,20 +18,13 @@
     "prod:update:evals": "node ./dist/scripts/update/evals.js",
     "prod:update:teams": "node ./dist/scripts/update/teams.js",
     "prod:update:players": "node ./dist/scripts/update/players.js",
-    "dev": "cross-env NODE_ENV=development nodemon --exec babel-node --use_strict ./src/index.js",
-    "build": "cross-env NODE_ENV=production babel ./src --out-dir ./dist",
-    "start": "node ./dist/index.js"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint && npm run test"
-    }
+    "dev": "cross-env NODE_ENV=development nodemon --exec babel-node --use_strict ./src/index.js"
   },
   "author": "tphilippini",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
-    "bcrypt": "^3.0.8",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "cross-env": "^7.0.2",

@@ -39,7 +39,7 @@ response.success = (res, status, code, ...data) => {
       message = 'Un ou plusieurs résultats ont été trouvé avec succès';
       break;
     case 'user_welcome':
-      message = 'Welcome on Nba App API';
+      message = 'welcome vercel';
       break;
     case 'user_forgot':
       message =

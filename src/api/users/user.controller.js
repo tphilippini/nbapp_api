@@ -13,7 +13,7 @@ import { isEmail, isUUID } from 'validator';
 import Devices from '@/api/devices/device.model';
 import EventEmitter from 'events';
 import Users from '@/api/users/user.model';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import log from '@/helpers/log';
 import mailer from '@/helpers/mailer';
 import os from '@/helpers/os';

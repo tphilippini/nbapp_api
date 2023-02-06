@@ -1,27 +1,25 @@
 'use strict';
 
+// import leagueRouter from '@/api/leagues/league.routes';
+// import authRouter from '@/api/auth/auth.routes';
+// import bodyParser from 'body-parser';
+// import cors from 'cors';
+// import corsMidd from '@/middlewares/cors';
+import date from '@/helpers/date';
 import express from 'express';
-import bodyParser from 'body-parser';
+// import helmet from 'helmet';
+import log from '@/helpers/log';
+// import matchRouter from '@/api/matches/match.routes';
 // import expressJwt from 'express-jwt';
 import mongoose from 'mongoose';
-import helmet from 'helmet';
-import cors from 'cors';
+// import otherMidd from '@/middlewares/other';
+import response from '@/helpers/response';
+// import deviceRouter from '@/api/devices/device.routes';
+// import userRouter from '@/api/users/user.routes';
 
 // import passport from '@/config/passport';
 
-import corsMidd from '@/middlewares/cors';
-import otherMidd from '@/middlewares/other';
 // import authErrorMidd from '@/middlewares/authError';
-
-// import deviceRouter from '@/api/devices/device.routes';
-import userRouter from '@/api/users/user.routes';
-import matchRouter from '@/api/matches/match.routes';
-// import leagueRouter from '@/api/leagues/league.routes';
-import authRouter from '@/api/auth/auth.routes';
-
-import log from '@/helpers/log';
-import response from '@/helpers/response';
-import date from '@/helpers/date';
 // import '@/scripts/cron';
 
 const app = express();
@@ -29,23 +27,23 @@ const app = express();
 class Server {
   static async init() {
     // Global middlewares
-    app.use(helmet());
-    app.use(cors());
+    // app.use(helmet());
+    // app.use(cors());
 
-    // CORS middleware
-    app.use(corsMidd);
+    // // CORS middleware
+    // app.use(corsMidd);
 
-    // A simple middleware
-    app.use(otherMidd);
+    // // A simple middleware
+    // app.use(otherMidd);
 
-    // Parse input values in JSON format
-    app.use(bodyParser.json());
-    // Parse from x-www-form-urlencoded, which is the universal content type
-    app.use(
-      bodyParser.urlencoded({
-        extended: true,
-      })
-    );
+    // // Parse input values in JSON format
+    // app.use(bodyParser.json());
+    // // Parse from x-www-form-urlencoded, which is the universal content type
+    // app.use(
+    //   bodyParser.urlencoded({
+    //     extended: true,
+    //   })
+    // );
 
     // Password auth
     // app.use(passport.initialize());
@@ -89,11 +87,11 @@ class Server {
   static async bootstrap() {
     // Routes
     // app.use(`${process.env.API_VERSION}/devices`, deviceRouter);
-    app.use(`${process.env.API_VERSION}/users`, userRouter);
-    app.use(`${process.env.API_VERSION}/matches`, matchRouter);
+    // app.use(`${process.env.API_VERSION}/users`, userRouter);
+    // app.use(`${process.env.API_VERSION}/matches`, matchRouter);
     // app.use(`${process.env.API_VERSION}/leagues`, leagueRouter);
     // Could use decentralized authorization server
-    app.use(`${process.env.API_VERSION}/auth`, authRouter);
+    // app.use(`${process.env.API_VERSION}/auth`, authRouter);
 
     app.get('/', (req, res) => {
       response.success(res, 200, 'user_welcome');
@@ -106,7 +104,7 @@ class Server {
     });
 
     try {
-      await Server.database();
+      // await Server.database();
       await Server.listen();
     } catch (e) {
       log[e.type](e.obj.message);

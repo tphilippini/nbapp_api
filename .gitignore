@@ -1,8 +1,11 @@
 node_modules
 src/tests/coverage/
 dist
+public
+api
 .env
 .env.production
 .vscode
 logs
 TODO.md
+.vercel
