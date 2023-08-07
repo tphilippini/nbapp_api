@@ -2,12 +2,12 @@
 
 import { Strategy as LocalStrategy } from 'passport-local';
 // import { setDefaultAlias } from '@/helpers/utils';
+import bcrypt from 'bcryptjs';
+import passport from 'passport';
 import Users from '@/api/users/user.model';
 // import { Strategy as GoogleStrategy } from 'passport-google-token';
 // import FacebookStrategy from 'passport-facebook-token';
-import bcrypt from 'bcryptjs';
 import log from '@/helpers/log';
-import passport from 'passport';
 // import uuid from 'uuid';
 require('dotenv').config();
 

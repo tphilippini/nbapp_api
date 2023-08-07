@@ -3,6 +3,11 @@
 
 'use strict';
 
+import EventEmitter from 'events';
+import bcrypt from 'bcryptjs';
+import { isUUID } from 'validator';
+import ua from 'useragent';
+import uuid from 'uuid';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -11,17 +16,12 @@ import {
 } from '@/helpers/token';
 
 import Devices from '@/api/devices/device.model';
-import EventEmitter from 'events';
 import Users from '@/api/users/user.model';
-import bcrypt from 'bcryptjs';
 import { isSha1 } from '@/helpers/validator';
-import { isUUID } from 'validator';
 import log from '@/helpers/log';
 import mailer from '@/helpers/mailer';
 import passport from '@/config/passport';
 import response from '@/helpers/response';
-import ua from 'useragent';
-import uuid from 'uuid';
 
 const authController = {};
 

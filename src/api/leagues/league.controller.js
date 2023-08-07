@@ -3,16 +3,14 @@
 
 'use strict';
 
+import EventEmitter from 'events';
 import UUID from 'uuid';
 import { isUUID } from 'validator';
-import EventEmitter from 'events';
-
-import Users from '@/api/users/user.model';
 import Leagues from '@/api/leagues/league.model';
-
+import Users from '@/api/users/user.model';
+import { generatePassword } from '@/helpers/utils';
 import log from '@/helpers/log';
 import response from '@/helpers/response';
-import { generatePassword } from '@/helpers/utils';
 
 const leagueController = {};
 

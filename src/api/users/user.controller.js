@@ -3,24 +3,24 @@
 
 'use strict';
 
+import EventEmitter from 'events';
+import { isEmail, isUUID } from 'validator';
+import bcrypt from 'bcryptjs';
+import ua from 'useragent';
+import uuid from 'uuid';
 import {
   generateAccessToken,
   generateRefreshToken,
   generateSignUpToken,
 } from '@/helpers/token';
-import { isEmail, isUUID } from 'validator';
 
 import Devices from '@/api/devices/device.model';
-import EventEmitter from 'events';
 import Users from '@/api/users/user.model';
-import bcrypt from 'bcryptjs';
 import log from '@/helpers/log';
 import mailer from '@/helpers/mailer';
 import os from '@/helpers/os';
 import passport from '@/config/passport';
 import response from '@/helpers/response';
-import ua from 'useragent';
-import uuid from 'uuid';
 
 const userController = {};
 

@@ -7,7 +7,7 @@
     "jest/globals": true
   },
   "plugins": ["prettier", "import", "promise", "jest"],
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "settings": {
     "import/resolver": {
       "babel-module": {

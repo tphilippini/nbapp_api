@@ -1,8 +1,10 @@
-/* eslint-disable prettier/prettier */
-import { transports, createLogger, format } from 'winston';
 import 'winston-daily-rotate-file';
+
 import fs from 'fs';
 import path from 'path';
+import { createLogger, format, transports } from 'winston';
+
+/* eslint-disable prettier/prettier */
 
 const logDir = 'logs';
 if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
@@ -14,9 +16,10 @@ const logger = createLogger({
     }),
     format.json(),
     format.printf(
-      (info) => `${info.timestamp} ${info.level}: ${info.message}${
-          info.splat !== undefined ? `${info.splat}` : ' '
-        }`
+      (info) => `
+        ${info.timestamp} ${info.level}: ${info.message}${
+        info.splat !== undefined ? `${info.splat}` : ' '
+      }`
     )
   ),
   transports: [

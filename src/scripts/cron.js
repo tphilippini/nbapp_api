@@ -1,8 +1,7 @@
 import cron from 'node-cron';
 import execa from 'execa';
-
-import log from '@/helpers/log';
 import loader from '@/helpers/loader';
+import log from '@/helpers/log';
 
 // Every 10 minutes between the hours of 21:00-00:00 on Sun and Sat
 cron.schedule(
@@ -13,7 +12,7 @@ cron.schedule(
     );
     loader.start();
     try {
-      await execa('npm run prod:update:daily-matches', {
+      await execa('pnpm run prod:update:daily-matches', {
         shell: true,
       });
 
@@ -39,7 +38,7 @@ cron.schedule(
     );
     loader.start();
     try {
-      await execa('npm run prod:update:daily-matches', {
+      await execa('pnpm run prod:update:daily-matches', {
         shell: true,
       });
 
@@ -63,7 +62,7 @@ cron.schedule(
     log.success('Running a job at 9:10am at Europe/Paris timezone');
     loader.start();
     try {
-      await execa('npm run prod:update:evals', {
+      await execa('pnpm run prod:update:evals', {
         shell: true,
       });
 
@@ -87,7 +86,7 @@ cron.schedule(
     log.success('Running a job at 4:30pm at Europe/Paris timezone');
     loader.start();
     try {
-      await execa('npm run prod:update:daily-matches', {
+      await execa('pnpm run prod:update:daily-matches', {
         shell: true,
       });
 
@@ -113,9 +112,12 @@ cron.schedule(
     );
     loader.start();
     try {
-      await execa('npm run prod:update:teams && npm run prod:update:players', {
-        shell: true,
-      });
+      await execa(
+        'pnpm run prod:update:teams && pnpm run prod:update:players',
+        {
+          shell: true,
+        }
+      );
 
       log.success('Looks great');
       loader.stop();
@@ -139,7 +141,7 @@ cron.schedule(
     );
     loader.start();
     try {
-      await execa('npm run prod:update:youtube-videos', {
+      await execa('pnpm run prod:update:youtube-videos', {
         shell: true,
       });
 
