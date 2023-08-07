@@ -13,7 +13,7 @@ import {
 import Devices from '@/api/devices/device.model';
 import EventEmitter from 'events';
 import Users from '@/api/users/user.model';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { isSha1 } from '@/helpers/validator';
 import { isUUID } from 'validator';
 import log from '@/helpers/log';
