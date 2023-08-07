@@ -1,27 +1,25 @@
 'use strict';
 
-import express from 'express';
 import bodyParser from 'body-parser';
-// import expressJwt from 'express-jwt';
-import mongoose from 'mongoose';
-import helmet from 'helmet';
 import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
+import mongoose from 'mongoose';
+import authRouter from '@/api/auth/auth.routes';
+// import leagueRouter from '@/api/leagues/league.routes';
+import corsMidd from '@/middlewares/cors';
+import date from '@/helpers/date';
+import log from '@/helpers/log';
+import matchRouter from '@/api/matches/match.routes';
+// import expressJwt from 'express-jwt';
+import otherMidd from '@/middlewares/other';
+import response from '@/helpers/response';
+// import deviceRouter from '@/api/devices/device.routes';
+import userRouter from '@/api/users/user.routes';
 
 // import passport from '@/config/passport';
 
-import corsMidd from '@/middlewares/cors';
-import otherMidd from '@/middlewares/other';
 // import authErrorMidd from '@/middlewares/authError';
-
-// import deviceRouter from '@/api/devices/device.routes';
-import userRouter from '@/api/users/user.routes';
-import matchRouter from '@/api/matches/match.routes';
-// import leagueRouter from '@/api/leagues/league.routes';
-import authRouter from '@/api/auth/auth.routes';
-
-import log from '@/helpers/log';
-import response from '@/helpers/response';
-import date from '@/helpers/date';
 // import '@/scripts/cron';
 
 const app = express();
@@ -33,7 +31,7 @@ class Server {
     app.use(cors());
 
     // CORS middleware
-    app.use(corsMidd);
+    // app.use(corsMidd);
 
     // A simple middleware
     app.use(otherMidd);
