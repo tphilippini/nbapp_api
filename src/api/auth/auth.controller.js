@@ -7,7 +7,7 @@ import EventEmitter from 'events';
 import bcrypt from 'bcryptjs';
 import { isUUID } from 'validator';
 import ua from 'useragent';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -121,7 +121,7 @@ authController.post = (req, res) => {
   });
 
   checkEvent.on('success_password_grant', async (result) => {
-    const deviceId = uuid.v4();
+    const deviceId = uuidv4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
       deviceId,
@@ -186,7 +186,7 @@ authController.post = (req, res) => {
   });
 
   checkEvent.on('success_refresh_token_grant', async (result) => {
-    const deviceId = uuid.v4();
+    const deviceId = uuidv4();
     const email =
       result.userId.local.email ||
       result.userId.facebook.id ||
@@ -288,7 +288,7 @@ authController.google = (req, res) => {
   });
 
   checkEvent.on('success_google_grant', async (result) => {
-    const deviceId = uuid.v4();
+    const deviceId = uuidv4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
       deviceId,
@@ -422,7 +422,7 @@ authController.facebook = (req, res) => {
   });
 
   checkEvent.on('success_facebook_grant', async (result) => {
-    const deviceId = uuid.v4();
+    const deviceId = uuidv4();
     const refreshToken = generateRefreshToken(deviceId);
     const accessToken = generateAccessToken(
       deviceId,

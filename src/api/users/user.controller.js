@@ -7,7 +7,7 @@ import EventEmitter from 'events';
 import { isEmail, isUUID } from 'validator';
 import bcrypt from 'bcryptjs';
 import ua from 'useragent';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -25,8 +25,6 @@ import response from '@/helpers/response';
 const userController = {};
 
 userController.post = (req, res) => {
-  log.info('Hi! Adding a user...');
-
   const deviceName = os.get().type;
   const agent = ua.parse(req.headers['user-agent']);
   const uaName = agent.toString();
@@ -71,24 +69,28 @@ userController.post = (req, res) => {
                 checkEvent.emit('success', result);
               }
             } else {
-              Users.doesThisExist({ alias })
+              console.log('Here test alias');
+              Users.findByAlias(alias)
                 .then((result) => {
+                  console.log('Here test alias', result);
                   if (result) {
                     errors.push('alias_already_taken');
                     checkEvent.emit('error', errors);
                   } else {
+                    console.log(Users);
                     const user = new Users({
                       methods: ['local'],
                       alias,
                       'local.email': email,
-                      uuid: uuid.v4(),
+                      uuid: uuidv4(),
                     });
 
+                    log.info('Hi! Adding a new user...');
                     checkEvent.emit('success', user);
                   }
                 })
                 .catch(() => {
-                  errors.push('alias_already_taken');
+                  errors.push('invalid_param_value');
                   checkEvent.emit('error', errors);
                 });
             }
@@ -121,7 +123,7 @@ userController.post = (req, res) => {
     bcrypt.hash(password, 12, (err, hash) => {
       user.local.password = hash;
 
-      const deviceId = uuid.v4();
+      const deviceId = uuidv4();
       const refreshToken = generateRefreshToken(deviceId);
       const accessToken = generateAccessToken(
         deviceId,
@@ -165,7 +167,7 @@ userController.post = (req, res) => {
 
             const confirmToken = generateSignUpToken(user.uuid, 'user');
             const link = `${process.env.APP_HOST}/auth/confirm/${confirmToken}`;
-
+            console.log('confirm', confirmToken);
             // console.log({ email, alias, link });
 
             mailer.sendSignUpEmail({ email, alias, link }, (err) => {

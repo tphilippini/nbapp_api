@@ -1,14 +1,14 @@
 /* eslint-disable consistent-return */
 
 import { Strategy as LocalStrategy } from 'passport-local';
-// import { setDefaultAlias } from '@/helpers/utils';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import Users from '@/api/users/user.model';
+// import { setDefaultAlias } from '@/helpers/utils';
 // import { Strategy as GoogleStrategy } from 'passport-google-token';
 // import FacebookStrategy from 'passport-facebook-token';
 import log from '@/helpers/log';
-// import uuid from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 require('dotenv').config();
 
 passport.use(
@@ -88,7 +88,7 @@ passport.use(
 //         // Create a new account
 //         log.success('Hi! Creating a new user from google verification...');
 //         const newUser = new Users({
-//           uuid: uuid.v4(),
+//           uuid: uuidv4(),
 //           methods: ['google'],
 //           google: {
 //             id: profile.id,
@@ -153,7 +153,7 @@ passport.use(
 //         // Create a new account
 //         log.success('Hi! Creating a new user from facebook verification...');
 //         const newUser = new Users({
-//           uuid: uuid.v4(),
+//           uuid: uuidv4(),
 //           methods: ['facebook'],
 //           facebook: {
 //             id: profile.id,

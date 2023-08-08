@@ -4,8 +4,8 @@
 'use strict';
 
 import EventEmitter from 'events';
-import UUID from 'uuid';
 import { isUUID } from 'validator';
+import { v4 as uuidv4 } from 'uuid';
 import Leagues from '@/api/leagues/league.model';
 import Users from '@/api/users/user.model';
 import { generatePassword } from '@/helpers/utils';
@@ -109,7 +109,7 @@ leagueController.post = (req, res) => {
             const league = new Leagues({
               name,
               weeks,
-              leagueId: UUID.v4(),
+              leagueId: uuidv4(),
               ownerId: result._id,
               password: generatePassword(),
             });

@@ -1,6 +1,5 @@
 'use strict';
 
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import expressJwt from 'express-jwt';
@@ -8,6 +7,7 @@ import helmet from 'helmet';
 import mongoose from 'mongoose';
 import authErrorMidd from '@/middlewares/authError';
 import authRouter from '@/api/auth/auth.routes';
+// import bodyParser from 'body-parser';
 // import leagueRouter from '@/api/leagues/league.routes';
 import corsMidd from '@/middlewares/cors';
 import date from '@/helpers/date';
@@ -36,13 +36,9 @@ class Server {
     app.use(otherMidd);
 
     // Parse input values in JSON format
-    app.use(bodyParser.json());
+    app.use(express.json()); // for parsing application/json
     // Parse from x-www-form-urlencoded, which is the universal content type
-    app.use(
-      bodyParser.urlencoded({
-        extended: true,
-      })
-    );
+    app.use(express.urlencoded({ extended: true }));
 
     // Password auth
     app.use(passport.initialize());

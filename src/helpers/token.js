@@ -66,7 +66,6 @@ const generateSignUpToken = (userId, userType) => {
 
 const validateToken = (data, cb) => {
   let secret;
-  console.log(data);
 
   if (data.type === 'reset') secret = process.env.API_RESET_TOKEN_SECRET;
   else if (data.type === 'signup') secret = process.env.API_SIGNUP_TOKEN_SECRET;
