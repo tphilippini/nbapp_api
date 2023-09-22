@@ -1,5 +1,7 @@
 'use strict';
 
+import '@/scripts/cron';
+
 import cors from 'cors';
 import express from 'express';
 import expressJwt from 'express-jwt';
@@ -18,8 +20,6 @@ import passport from '@/config/passport';
 import response from '@/helpers/response';
 // import deviceRouter from '@/api/devices/device.routes';
 import userRouter from '@/api/users/user.routes';
-
-// import '@/scripts/cron';
 
 const app = express();
 

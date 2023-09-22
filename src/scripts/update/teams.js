@@ -1,34 +1,41 @@
-import mongoose from 'mongoose';
 import { forEachSeries } from 'p-iteration';
-
-import log from '@/helpers/log';
+import mongoose from 'mongoose';
 import Teams from '@/api/teams/team.model';
-
+import log from '@/helpers/log';
 import { findTeams } from '../api/nba';
 
 require('dotenv').config();
 
 async function grabTeams() {
   // TEAMS
-  log.info('Finding teams...');
-  const teams = await findTeams();
-  log.info(`Teams found : ${teams.length}`);
+  let teams = [];
+  try {
+    log.info('Finding teams...');
+    const listGroups = await findTeams();
+    teams = [...listGroups[0].teams, ...listGroups[1].teams];
+  } catch (error) {
+    log.error('Team doesnt save, see error...');
+    log.error(error);
+  }
 
-  await forEachSeries(teams, async (team) => {
-    if (team.isNBAFranchise) {
-      const teamToSave = await Teams.findOne({ teamId: team.teamId });
+  log.info(`Teams found : ${teams.length}`);
+  await forEachSeries(teams, async (item) => {
+    const team = item.profile;
+    if (team.isLeagueTeam) {
+      const teamToSave = await Teams.findOne({ teamId: team.id });
       if (teamToSave) {
         log.info('----------------------------------');
-        log.info(`${team.fullName}`);
+        log.info(`${team.cityEn} ${team.nameEn}`);
         log.info('Team exists, updating the record now...');
-        teamToSave.isNBAFranchise = team.isNBAFranchise;
+
+        teamToSave.isNBAFranchise = team.isLeagueTeam;
         teamToSave.city = team.city;
-        teamToSave.teamId = team.teamId;
-        teamToSave.teamName = team.fullName;
-        teamToSave.teamShortName = team.urlName;
-        teamToSave.teamTriCode = team.tricode;
-        teamToSave.confName = team.confName;
-        teamToSave.divName = team.divName;
+        teamToSave.teamId = team.id;
+        teamToSave.teamName = team.nameEn;
+        teamToSave.teamShortName = team.code;
+        teamToSave.teamTriCode = team.abbr;
+        teamToSave.confName = team.conference;
+        teamToSave.divName = team.division;
 
         try {
           const existingTeam = new Teams(teamToSave);
@@ -41,17 +48,18 @@ async function grabTeams() {
         }
       } else {
         log.info('----------------------------------');
-        log.info(`${team.fullName}`);
+        log.info(`${team.cityEn} ${team.nameEn}`);
         log.info('Team doesnt exist, creating new record now...');
+
         const newTeam = {
-          isNBAFranchise: team.isNBAFranchise,
+          isNBAFranchise: team.isLeagueTeam,
           city: team.city,
-          teamId: team.teamId,
-          teamName: team.fullName,
-          teamShortName: team.urlName,
-          teamTriCode: team.tricode,
-          confName: team.confName,
-          divName: team.divName,
+          teamId: team.id,
+          teamName: team.nameEn,
+          teamShortName: team.code,
+          teamTriCode: team.abbr,
+          confName: team.conference,
+          divName: team.division,
         };
 
         try {

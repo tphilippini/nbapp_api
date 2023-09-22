@@ -1,8 +1,8 @@
 'use strict';
 
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(timezone);
 dayjs.extend(utc);
@@ -10,6 +10,7 @@ dayjs.extend(utc);
 const date = {};
 
 date.dateTime = () => dayjs().tz(date.timeZone()).format();
+date.dateTimeToUTC = () => dayjs().tz(date.timeZone()).utc().format();
 
 date.timeZone = () => {
   let timeZone = dayjs.tz.guess();

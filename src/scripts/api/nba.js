@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import log from '@/helpers/log';
 import { sum } from '@/helpers/utils';
 
@@ -56,10 +56,13 @@ async function findTeams() {
       // const uri = `https://data.nba.net/prod/v2/${dayjs().format(
       //   "Y"
       // )}/teams.json`;
-      const uri = `https://data.nba.net/prod/v2/${year}/teams.json`;
+      const uri =
+        'https://en.global.nba.com/stats2/league/conferenceteamlist.json';
       log.success(uri);
+      // const response = await fetch(uri);
+      // const teams = await response.json();
       const teams = await axios.get(uri);
-      resolve(teams.data.league.standard);
+      resolve(teams.data.payload.listGroups);
     } catch (error) {
       log.error(error);
       reject(error);
