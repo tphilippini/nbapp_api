@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dayjs from 'dayjs';
+import fetch from 'node-fetch';
 import log from '@/helpers/log';
 import { sum } from '@/helpers/utils';
 
@@ -34,15 +35,25 @@ EFF = [ (( PTS+REB+PD+INT+BLOC )) + (( TT-TM ) + ( LFT-LFM ) - BP )) ] / MJ
 - MJ ( G ) : nombre de matches joués dans une compétition
 */
 
-const year = '2021';
+// https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json
+// https://cdn.nba.com/static/json/liveData/boxscore/boxscore_0022000180.json
+// https://cdn.nba.com/static/json/liveData/playbyplay/playbyplay_{game_id}.json
+
+// https://stats.nba.com/stats/{endpoint}
+// https://cdn.nba.com/static/json/liveData/{endpoint}
+// https://en.global.nba.com/stats2/scores/daily.json?gameDate=2022-11-16
+
+const year = '2023';
 
 async function findTodayMatches(date) {
   return new Promise(async (resolve, reject) => {
     try {
-      const uri = `https://data.nba.net/prod/v2/${date}/scoreboard.json`;
+      // const uri = `https://data.nba.net/prod/v2/${date}/scoreboard.json`;
+      const uri = `https://en.global.nba.com/stats2/scores/daily.json?gameDate=${date}`;
       log.success(uri);
-      const matches = await axios.get(uri);
-      resolve(matches.data.games);
+      const response = await fetch(uri);
+      const matches = await response.json();
+      resolve(matches.payload.date);
     } catch (error) {
       log.error(error);
       reject(error);
@@ -59,10 +70,9 @@ async function findTeams() {
       const uri =
         'https://en.global.nba.com/stats2/league/conferenceteamlist.json';
       log.success(uri);
-      // const response = await fetch(uri);
-      // const teams = await response.json();
-      const teams = await axios.get(uri);
-      resolve(teams.data.payload.listGroups);
+      const response = await fetch(uri);
+      const teams = await response.json();
+      resolve(teams.payload.listGroups);
     } catch (error) {
       log.error(error);
       reject(error);
@@ -93,6 +103,7 @@ async function checkPlayers() {
       // const uri = `https://stats.nba.com/stats/commonteamroster?LeagueID=00&Season=2019-20&TeamID=${teamId}`;
       // /prod/v1/2019/teams/{{teamUrlCode}}/roster.json
       // https://data.nba.net/prod/v1/2019/players.json
+      // https://en.global.nba.com/stats2/league/playerlist.json
       const uri = `https://data.nba.net/prod/v1/${year}/players.json`;
       log.success(uri);
       const roster = await axios.get(uri);

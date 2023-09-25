@@ -40,7 +40,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.20",
     "node-cron": "^2.0.3",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.6.12",
     "nodemailer": "^6.9.4",
     "nodemailer-express-handlebars": "^4.0.0",
     "os": "^0.1.2",

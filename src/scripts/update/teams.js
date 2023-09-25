@@ -107,6 +107,9 @@ async function main() {
   connection.once('open', () => {
     log.success(`Hi! Connecting to the database ${process.env.DB_NAME}`);
   });
+  connection.once('close', () => {
+    log.success(`Hi! Disconnecting to the database ${process.env.DB_NAME}`);
+  });
   connection.on('error', (err) => {
     log.error(`Connection error to the database ${process.env.DB_NAME}`);
     if (err) {
@@ -122,6 +125,4 @@ async function main() {
     connection.close();
     // setInterval( () => mainLoop(connection, dateFormatted, date), 20000);
   });
-
-  connection.close();
 })();
