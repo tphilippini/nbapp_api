@@ -8,6 +8,7 @@ class Mailer {
     this.transporter = nodemailer.createTransport({
       host: process.env.MAIL_HOST,
       port: process.env.MAIL_PORT,
+      secure: false,
       auth: {
         user: process.env.MAIL_AUTH_USER,
         pass: process.env.MAIL_AUTH_PASS,
@@ -26,6 +27,20 @@ class Mailer {
         viewPath: 'src/views/emails',
         extName: '.handlebars',
       })
+    );
+  }
+
+  sendTest(data, cb) {
+    this._setTransporter();
+    this.transporter.sendMail(
+      {
+        from: this.from,
+        to: 'thomas.philippini@gmail.com',
+        subject: 'NBA App - Test 🚀',
+        template: 'test',
+        context: data,
+      },
+      cb
     );
   }
 

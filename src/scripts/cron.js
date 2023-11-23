@@ -1,7 +1,8 @@
-import { exec } from 'child_process';
+// import { exec } from 'child_process';
 import cron from 'node-cron';
-import loader from '@/helpers/loader';
+// import loader from '@/helpers/loader';
 import log from '@/helpers/log';
+import mailer from '@/helpers/mailer';
 
 // Every minute for test
 // https://dashboard.render.com/web/srv-cj8gcd5jeehc73c0iang/logs
@@ -10,25 +11,65 @@ import log from '@/helpers/log';
 // cron.schedule('* * * * *', async () => {
 //   log.success('Running a job test');
 // });
-// cron.schedule('03 14 * * *', async () => {
-//   log.success('Running a 14h(utc) job test');
-// });
+// https://dev.to/documatic/send-email-in-nodejs-with-nodemailer-using-gmail-account-2gd1
+// cron.schedule(
+//   '45 10 * * *',
+//   () => {
+//     console.log('Running a job at 20:45 at Europe/Paris timezone');
 
-// At 10 minutes past 7:00
-cron.schedule('10 7 * * *', async () => {
-  log.success('Running a job at 9:10am at Europe/Paris timezone');
-  loader.start();
-  try {
-    await exec('pnpm run prod:update:daily-matches');
-    log.success('Looks great');
-    loader.stop();
-  } catch (e) {
-    log.error(`Does not look great: ${e.stdout}`);
-    log.error(`ShortMessage : ${e.shortMessage}`);
+//     mailer.sendTest({ name: 'Thomas' }, (err) => {
+//       if (err) {
+//         console.log('[mailer_failed] - sendTest');
+//         console.log(err);
+//       } else {
+//         console.log('Hi! mail sent...');
+//       }
+//     });
+//   },
+//   {
+//     scheduled: true,
+//     timezone: 'Europe/Paris',
+//   }
+// );
+
+cron.schedule(
+  '15 7 * * *',
+  () => {
+    log.success('Running a job test');
+    mailer.sendTest({ name: 'Thomas P' }, (err) => {
+      if (err) {
+        console.log('[mailer_failed] - sendTest');
+        console.log(err);
+      } else {
+        console.log('Hi! mail sent...');
+      }
+    });
+  },
+  {
+    scheduled: true,
+    timezone: 'Europe/Paris',
   }
+);
+
+cron.schedule('* * * * *', async () => {
+  log.success('Running a job test');
 });
 
-// Every 10 minutes between the hours of 0:00-9:00
+// At 10 minutes past 7:00
+// cron.schedule('10 7 * * *', async () => {
+//   log.success('Running a job at 9:10am at Europe/Paris timezone');
+//   loader.start();
+//   try {
+//     await exec('pnpm run prod:update:daily-matches');
+//     log.success('Looks great');
+//     loader.stop();
+//   } catch (e) {
+//     log.error(`Does not look great: ${e.stdout}`);
+//     log.error(`ShortMessage : ${e.shortMessage}`);
+//   }
+// });
+
+// At 10 minutes between the hours of 0:00-9:00
 // cron.schedule(
 //   '*/10 0-9 * * *',
 //   async () => {
@@ -91,21 +132,21 @@ cron.schedule('10 7 * * *', async () => {
 // );
 
 // At 10 minutes past 10:00 on the 5th day of every month
-cron.schedule('10 12 5 * *', async () => {
-  log.success(
-    'Running a job at 10 minutes past 10am on the 5th day of every month'
-  );
-  log.info('pnpm run prod:update:teams');
-  loader.start();
-  try {
-    await exec('pnpm run prod:update:teams');
-    log.success('Looks great');
-    loader.stop();
-  } catch (e) {
-    log.error(`Does not look great: ${e.stdout}`);
-    log.error(`ShortMessage : ${e.shortMessage}`);
-  }
-});
+// cron.schedule('10 12 5 * *', async () => {
+//   log.success(
+//     'Running a job at 10 minutes past 10am on the 5th day of every month'
+//   );
+//   log.info('pnpm run prod:update:teams');
+//   loader.start();
+//   try {
+//     await exec('pnpm run prod:update:teams');
+//     log.success('Looks great');
+//     loader.stop();
+//   } catch (e) {
+//     log.error(`Does not look great: ${e.stdout}`);
+//     log.error(`ShortMessage : ${e.shortMessage}`);
+//   }
+// });
 
 // Every 10 minutes between the hours of 21:00-00:00 on Sun and Sat
 // cron.schedule(
